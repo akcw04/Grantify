@@ -1,0 +1,11 @@
+/* OWNER: Member C. Styles used ONLY on Admin pages.
+   This file loads on top of the shared site.css — only add here,
+   do not repeat or fight the shared theme.
+   How to load it on your page: see the @section Styles block
+   at the bottom of Pages/Admin/Index.cshtml. */
+
+/* Example: admin pages get a dark red accent under the page title. */
+h1 {
+    border-bottom: 3px solid #842029;
+    padding-bottom: .25rem;
+}

@@ -1,0 +1,29 @@
+@page
+@model Grantify.Pages.Officer.IndexModel
+@{
+    ViewData["Title"] = "Officer Dashboard";
+}
+
+@* OWNER: Member B (Officer role). Build all officer pages inside Pages/Officer/. *@
+
+<h1>Scholarship Officer Dashboard</h1>
+<p class="lead">Welcome, this area is only visible to users with the <strong>Officer</strong> role.</p>
+
+<div class="alert alert-info">
+    <strong>To build (Member B):</strong>
+    <ul class="mb-0">
+        <li>View and filter the incoming application queue</li>
+        <li>Verify uploaded documents (mark verified / flagged)</li>
+        <li>Review, score, shortlist, approve or reject applications</li>
+        <li>See the automated eligibility result for each applicant</li>
+    </ul>
+</div>
+
+@* These two blocks load the Officer-only css and js on this page.
+   Copy them onto every new Officer page you create. *@
+@section Styles {
+    <link rel="stylesheet" href="~/css/officer/officer.css" asp-append-version="true" />
+}
+@section Scripts {
+    <script src="~/js/officer/officer.js" asp-append-version="true"></script>
+}

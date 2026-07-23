@@ -1,0 +1,30 @@
+# Visual Studio / ASP.NET Core .gitignore
+# Keeps build output and personal settings out of the repo — only source code gets pushed.
+
+# Build results (regenerated on every build — never commit)
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+
+# Visual Studio user-specific files (personal window layouts, breakpoints etc.)
+.vs/
+*.user
+*.suo
+*.userosscache
+
+# Local secrets — NEVER commit real credentials.
+# Use appsettings.Development.json locally; commit only appsettings.json with placeholders.
+appsettings.Development.json
+*.pfx
+
+# LocalDB database files (each member has their own DB — rebuilt via Update-Database)
+*.mdf
+*.ldf
+
+# NuGet packages (restored automatically from the .csproj on build)
+packages/
+*.nupkg
+
+# AWS deployment artifacts
+aws-beanstalk-tools-defaults.json.user

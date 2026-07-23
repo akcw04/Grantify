@@ -1,0 +1,11 @@
+/* OWNER: Member B. Styles used ONLY on Officer pages.
+   This file loads on top of the shared site.css — only add here,
+   do not repeat or fight the shared theme.
+   How to load it on your page: see the @section Styles block
+   at the bottom of Pages/Officer/Index.cshtml. */
+
+/* Example: officer pages get a green accent under the page title. */
+h1 {
+    border-bottom: 3px solid #198754;
+    padding-bottom: .25rem;
+}

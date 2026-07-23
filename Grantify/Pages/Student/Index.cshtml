@@ -1,0 +1,29 @@
+@page
+@model Grantify.Pages.Student.IndexModel
+@{
+    ViewData["Title"] = "Student Dashboard";
+}
+
+@* OWNER: Member A (Student role). Build all student pages inside Pages/Student/. *@
+
+<h1>Student Dashboard</h1>
+<p class="lead">Welcome, this area is only visible to users with the <strong>Student</strong> role.</p>
+
+<div class="alert alert-info">
+    <strong>To build (Member A):</strong>
+    <ul class="mb-0">
+        <li>Manage my profile (CGPA, household income, course)</li>
+        <li>Browse and search scholarships + see my eligibility result</li>
+        <li>Submit an application and upload documents</li>
+        <li>Track my application status and notifications</li>
+    </ul>
+</div>
+
+@* These two blocks load the Student-only css and js on this page.
+   Copy them onto every new Student page you create. *@
+@section Styles {
+    <link rel="stylesheet" href="~/css/student/student.css" asp-append-version="true" />
+}
+@section Scripts {
+    <script src="~/js/student/student.js" asp-append-version="true"></script>
+}

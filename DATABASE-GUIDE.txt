@@ -1,0 +1,93 @@
+=====================================================================
+ GRANTIFY - DATABASE GUIDE FOR THE TEAM
+ (Read this once before you write any code. Takes 5 minutes.)
+=====================================================================
+
+WHAT DATABASE ARE WE USING?
+---------------------------------------------------------------------
+- During development: LocalDB. This is a small, free SQL Server that
+  is already inside Visual Studio. It runs on YOUR OWN computer.
+- Every member has their OWN copy of the database. We do NOT share
+  one database during development.
+- We DO share the database STRUCTURE (the tables and columns).
+  This happens automatically through "migration" files in Git.
+- In Week 9 we switch to Amazon RDS (the cloud database) by changing
+  ONE line in appsettings.json. No code changes.
+
+WHERE THE DATABASE CODE LIVES (do not move these)
+---------------------------------------------------------------------
+  Grantify/Models/          -> One file per table. Example:
+                               Scholarship.cs = the Scholarships table.
+  Grantify/Data/AppDbContext.cs
+                            -> The list of all tables. The "door" to
+                               the database.
+  Grantify/Data/DbSeeder.cs -> Puts starting data into an empty
+                               database (roles, test accounts,
+                               sample scholarships).
+  Grantify/Migrations/      -> Auto-generated files that describe
+                               every change to the tables. NEVER edit
+                               these by hand. ALWAYS commit them.
+  Grantify/appsettings.json -> The connection string (which database
+                               the app talks to).
+
+FIRST TIME SETUP (after you clone the repo)
+---------------------------------------------------------------------
+1. Open Grantify.sln in Visual Studio 2026.
+2. Press F5 (run).
+   That is all. When the app starts, it builds your local database,
+   creates the tables, and fills in the test data by itself.
+
+TEST ACCOUNTS (created automatically, for development only)
+---------------------------------------------------------------------
+  student@grantify.test    role: Student
+  officer@grantify.test    role: Officer
+  admin@grantify.test      role: Admin
+  Password for all three:  Grantify@123
+
+EVERY DAY WORK
+---------------------------------------------------------------------
+- After "git pull": just run the app (F5). If a teammate changed the
+  database, your copy updates itself on startup.
+- If Visual Studio shows database errors after a pull, run this in
+  Tools > NuGet Package Manager > Package Manager Console:
+      Update-Database
+
+HOW TO CHANGE THE DATABASE (add a table or a column)
+---------------------------------------------------------------------
+1. FIRST announce it in the group chat. Models are shared files.
+2. Edit or add a class in the Models/ folder.
+   (New table? Also add one DbSet line in Data/AppDbContext.cs.)
+3. Open Package Manager Console and run:
+      Add-Migration YourChangeName        (example: AddNotificationTable)
+      Update-Database
+4. Commit BOTH your model change AND the new files that appeared in
+   Migrations/. They must go into Git together.
+
+THE FIVE RULES (breaking these breaks everyone's database)
+---------------------------------------------------------------------
+1. NEVER change the database by hand (no SQL Server tools, no manual
+   table edits). Only change Models + run Add-Migration.
+2. NEVER edit or delete a migration that is already pushed to Git.
+3. Announce in group chat before touching Models/, Data/ or
+   appsettings.json.
+4. Only ONE person creates migrations for one feature. Two people
+   making migrations at the same time = conflict.
+5. Do not put real passwords or the RDS connection string in Git.
+   Local secrets go in appsettings.Development.json (Git ignores it).
+
+WHY IT WORKS (short version)
+---------------------------------------------------------------------
+A migration file is a recipe: "add this table, add this column".
+Because the recipes are in Git, every member's app can replay them
+and end up with an identical database. The data rows are not shared,
+so DbSeeder gives everyone the same sample data to test with.
+
+WHEN WE MOVE TO THE CLOUD (Week 9 - do not do this yet)
+---------------------------------------------------------------------
+1. Create the RDS database in AWS Learner Lab.
+2. In appsettings, change the connection string to the RDS address.
+3. Run the app once - it creates the tables on RDS by itself.
+4. Deploy to Elastic Beanstalk.
+Remember: RDS keeps costing money even when the lab session is off.
+Only create it in integration week, and stop it when not needed.
+=====================================================================
