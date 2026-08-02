@@ -1,0 +1,115 @@
+@page
+@model Grantify.Pages.Officer.DocumentsModel
+@{
+    ViewData["Title"] = "Document Verification";
+}
+
+@* OWNER: Member B. Plain Bootstrap for now — styling comes after the Student
+   pages set the house style. *@
+
+<h1>Document Verification</h1>
+<p class="text-muted">
+    Every supporting file that still needs a decision, oldest upload first.
+</p>
+
+<partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
+
+<form method="get" class="row g-2 align-items-end mb-4">
+    <div class="col-12 col-md-3">
+        <label class="form-label" asp-for="Status">Show</label>
+        <select class="form-select" asp-for="Status"
+                asp-items="Html.GetEnumSelectList<DocumentStatus>()">
+            <option value="">Needs attention (pending + flagged)</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Apply</button>
+    </div>
+</form>
+
+@if (Model.Items.Count == 0)
+{
+    <div class="alert alert-success">Nothing to check — every document has been dealt with.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Student</th>
+                    <th>Scholarship</th>
+                    <th>Status</th>
+                    <th style="min-width: 22rem;">Decision</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            @item.FileName
+                            <div class="small text-muted">
+                                uploaded @item.UploadedOn.ToString("dd MMM yyyy")
+                            </div>
+                        </td>
+                        <td>@item.StudentName</td>
+                        <td>@item.ScholarshipName</td>
+                        <td>
+                            @if (item.Status == DocumentStatus.Flagged)
+                            {
+                                <span class="badge bg-danger">Flagged</span>
+                            }
+                            else if (item.Status == DocumentStatus.Verified)
+                            {
+                                <span class="badge bg-success">Verified</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Pending</span>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(item.OfficerNote))
+                            {
+                                <div class="small">@item.OfficerNote</div>
+                            }
+                        </td>
+                        <td>
+                            <form method="post" asp-page-handler="SetStatus" class="row g-1">
+                                <input type="hidden" name="documentId" value="@item.DocumentId" />
+                                <div class="col-12 col-lg-6">
+                                    <input class="form-control form-control-sm" name="note"
+                                           value="@item.OfficerNote"
+                                           placeholder="Note (required when flagging)" />
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-sm btn-outline-success"
+                                            name="documentStatus" value="@DocumentStatus.Verified">
+                                        Verify
+                                    </button>
+                                </div>
+                                <div class="col-auto">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            name="documentStatus" value="@DocumentStatus.Flagged">
+                                        Flag
+                                    </button>
+                                </div>
+                                <div class="col-auto">
+                                    <a class="btn btn-sm btn-link"
+                                       asp-page="Review" asp-route-id="@item.ApplicationId">Open application</a>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/officer/officer.css" asp-append-version="true" />
+}
+@section Scripts {
+    <script src="~/js/officer/officer.js" asp-append-version="true"></script>
+}

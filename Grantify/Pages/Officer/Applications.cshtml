@@ -1,0 +1,149 @@
+@page
+@model Grantify.Pages.Officer.ApplicationsModel
+@{
+    ViewData["Title"] = "Application Queue";
+}
+
+@* OWNER: Member B. Plain Bootstrap for now — styling comes after the Student
+   pages set the house style. *@
+
+<h1>Application Queue</h1>
+<p class="text-muted">@Model.Items.Count application(s) match your filters.</p>
+
+<partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
+
+@* ---------- Filter bar (a GET form, so filters end up in the URL) ---------- *@
+<form method="get" class="row g-2 align-items-end mb-4">
+    <div class="col-12 col-md-3">
+        <label class="form-label" asp-for="ScholarshipId">Scholarship</label>
+        <select class="form-select" asp-for="ScholarshipId">
+            <option value="">All scholarships</option>
+            @foreach (var scholarship in Model.Scholarships)
+            {
+                <option value="@scholarship.Id">@scholarship.Name</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-6 col-md-2">
+        <label class="form-label" asp-for="Status">Status</label>
+        <select class="form-select" asp-for="Status"
+                asp-items="Html.GetEnumSelectList<ApplicationStatus>()">
+            <option value="">Any status</option>
+        </select>
+    </div>
+
+    <div class="col-6 col-md-2">
+        <label class="form-label" asp-for="Sort">Sort by</label>
+        <select class="form-select" asp-for="Sort"
+                asp-items="Html.GetEnumSelectList<QueueSort>()"></select>
+    </div>
+
+    <div class="col-12 col-md-3">
+        <label class="form-label" asp-for="Search">Search</label>
+        <input class="form-control" asp-for="Search"
+               placeholder="Student name, email or scholarship" />
+    </div>
+
+    <div class="col-12 col-md-2">
+        <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="onlyOpen" name="onlyOpen"
+                   value="true" checked="@Model.OnlyOpen" />
+            @* Sends "false" when the box is unticked, so the filter can be turned off. *@
+            <input type="hidden" name="onlyOpen" value="false" />
+            <label class="form-check-label" for="onlyOpen">Hide decided</label>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Apply</button>
+    </div>
+</form>
+
+@* ---------- The queue ---------- *@
+@if (Model.Items.Count == 0)
+{
+    <div class="alert alert-secondary">
+        No applications match these filters. Try clearing the search box or unticking "Hide decided".
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Scholarship</th>
+                    <th>Submitted</th>
+                    <th>Status</th>
+                    <th>Score</th>
+                    <th>Documents</th>
+                    <th>Handled by</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            @item.StudentName
+                            <div class="small text-muted">@item.StudentEmail</div>
+                        </td>
+                        <td>
+                            @item.ScholarshipName
+                            @if (item.IsOverdue)
+                            {
+                                <span class="badge bg-warning text-dark">deadline passed</span>
+                            }
+                        </td>
+                        <td>@item.SubmittedOn.ToString("dd MMM yyyy")</td>
+                        <td>@item.Status</td>
+                        <td>@(item.Score?.ToString() ?? "—")</td>
+                        <td>
+                            @if (item.DocumentCount == 0)
+                            {
+                                <span class="text-muted">none</span>
+                            }
+                            else
+                            {
+                                <span>@item.DocumentCount file(s)</span>
+                                @if (item.PendingDocumentCount > 0)
+                                {
+                                    <span class="badge bg-secondary">@item.PendingDocumentCount pending</span>
+                                }
+                                @if (item.FlaggedDocumentCount > 0)
+                                {
+                                    <span class="badge bg-danger">@item.FlaggedDocumentCount flagged</span>
+                                }
+                            }
+                        </td>
+                        <td>@(item.ReviewedByName ?? "—")</td>
+                        <td class="text-end text-nowrap">
+                            @* Only a brand new application can be claimed. *@
+                            @if (item.Status == ApplicationStatus.Submitted)
+                            {
+                                <form method="post" asp-page-handler="StartReview" class="d-inline">
+                                    <input type="hidden" name="id" value="@item.ApplicationId" />
+                                    <input type="hidden" name="scholarshipId" value="@Model.ScholarshipId" />
+                                    <input type="hidden" name="status" value="@Model.Status" />
+                                    <input type="hidden" name="search" value="@Model.Search" />
+                                    <input type="hidden" name="onlyOpen" value="@Model.OnlyOpen" />
+                                    <input type="hidden" name="sort" value="@Model.Sort" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Start review</button>
+                                </form>
+                            }
+                            <a class="btn btn-sm btn-primary"
+                               asp-page="Review" asp-route-id="@item.ApplicationId">Review</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/officer/officer.css" asp-append-version="true" />
+}
+@section Scripts {
+    <script src="~/js/officer/officer.js" asp-append-version="true"></script>
+}

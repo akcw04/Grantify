@@ -4,20 +4,105 @@
     ViewData["Title"] = "Officer Dashboard";
 }
 
-@* OWNER: Member B (Officer role). Build all officer pages inside Pages/Officer/. *@
+@* OWNER: Member B (Officer role). Build all officer pages inside Pages/Officer/.
+   NOTE ON STYLING: this page uses plain Bootstrap only. The proper look comes
+   later, once the Student pages set the house style for the whole app. *@
 
 <h1>Scholarship Officer Dashboard</h1>
-<p class="lead">Welcome, this area is only visible to users with the <strong>Officer</strong> role.</p>
+<p class="lead">Welcome, @User.Identity?.Name. Here is what is waiting for you.</p>
 
-<div class="alert alert-info">
-    <strong>To build (Member B):</strong>
-    <ul class="mb-0">
-        <li>View and filter the incoming application queue</li>
-        <li>Verify uploaded documents (mark verified / flagged)</li>
-        <li>Review, score, shortlist, approve or reject applications</li>
-        <li>See the automated eligibility result for each applicant</li>
-    </ul>
+<partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
+
+@* ---------- Counts ---------- *@
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">New (not opened)</div>
+                <div class="fs-3">@Model.Dashboard.Submitted</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Under review</div>
+                <div class="fs-3">@Model.Dashboard.UnderReview</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Shortlisted</div>
+                <div class="fs-3">@Model.Dashboard.Shortlisted</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="text-muted small">Decided (approved / rejected)</div>
+                <div class="fs-3">@(Model.Dashboard.Approved + Model.Dashboard.Rejected)</div>
+                <div class="small text-muted">
+                    @Model.Dashboard.Approved approved, @Model.Dashboard.Rejected rejected
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@* ---------- Things that need attention ---------- *@
+@if (Model.Dashboard.OverdueApplications > 0)
+{
+    <div class="alert alert-warning">
+        <strong>@Model.Dashboard.OverdueApplications</strong> application(s) are still undecided
+        even though the scholarship deadline has passed.
+    </div>
+}
+
+<div class="mb-4">
+    <a class="btn btn-primary" asp-page="Applications">Open application queue (@Model.Dashboard.OpenTotal)</a>
+    <a class="btn btn-outline-secondary" asp-page="Documents">
+        Verify documents (@Model.Dashboard.PendingDocuments pending, @Model.Dashboard.FlaggedDocuments flagged)
+    </a>
+</div>
+
+@* ---------- Shortcut list ---------- *@
+<h2 class="h5">Waiting longest</h2>
+@if (Model.NextUp.Count == 0)
+{
+    <p class="text-muted">Nothing is waiting for review right now.</p>
+}
+else
+{
+    <table class="table table-sm align-middle">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Scholarship</th>
+                <th>Submitted</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.NextUp)
+            {
+                <tr>
+                    <td>@item.StudentName</td>
+                    <td>@item.ScholarshipName</td>
+                    <td>@item.SubmittedOn.ToString("dd MMM yyyy")</td>
+                    <td>@item.Status</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary"
+                           asp-page="Review" asp-route-id="@item.ApplicationId">Open</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
 
 @* These two blocks load the Officer-only css and js on this page.
    Copy them onto every new Officer page you create. *@

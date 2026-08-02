@@ -1,0 +1,13 @@
+@model (string? Message, bool IsError)
+
+@* OWNER: Member B. The green / red bar shown after an officer saves something.
+   Use it on any Officer page with:
+   <partial name="_StatusMessage" model="(StatusMessage, StatusIsError)" /> *@
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <div class="alert @(Model.IsError ? "alert-danger" : "alert-success") alert-dismissible fade show" role="alert">
+        @Model.Message
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
