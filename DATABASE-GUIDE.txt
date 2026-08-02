@@ -32,7 +32,7 @@ WHERE THE DATABASE CODE LIVES (do not move these)
 
 FIRST TIME SETUP (after you clone the repo)
 ---------------------------------------------------------------------
-1. Open Grantify.sln in Visual Studio 2026.
+1. Open Grantify.slnx in Visual Studio 2026.
 2. Press F5 (run).
    That is all. When the app starts, it builds your local database,
    creates the tables, and fills in the test data by itself.

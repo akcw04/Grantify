@@ -1,0 +1,178 @@
+=====================================================================
+ GRANTIFY - GIT & BRANCH GUIDE FOR THE TEAM
+ (Read this once before you push anything. Takes 5 minutes.)
+=====================================================================
+
+THE IDEA IN ONE PICTURE
+---------------------------------------------------------------------
+  main                     <- always works. Nobody codes directly here.
+   |
+   +-- feature/student-*    <- Member A works here
+   +-- feature/officer-*    <- Member B works here
+   +-- feature/admin-*      <- Member C works here
+
+You make a branch, build ONE feature on it, then merge it back into
+main through a Pull Request. A branch should live 1-3 days, not weeks.
+
+WHY SHORT BRANCHES: if you stay on your own branch for a month, your
+code and main drift apart, and the final merge in Week 9 becomes a
+nightmare on the same day we deploy to AWS. Merging small and often
+is what keeps us out of trouble.
+
+WHO OWNS WHICH FOLDER
+---------------------------------------------------------------------
+  Member A  Student   Pages/Student/   css/student/   js/student/
+  Member B  Officer   Pages/Officer/   css/officer/   js/officer/
+  Member C  Admin     Pages/Admin/     css/admin/     js/admin/
+
+Inside your own folder you can do anything without asking.
+Outside it, read "THE FOUR RULES" below first.
+
+BRANCH NAMES
+---------------------------------------------------------------------
+  feature/<role>-<what-you-are-building>
+
+  Good:  feature/student-apply-form
+         feature/officer-document-verification
+         feature/admin-scholarship-editor
+  Bad:   feature/student        (too vague, lives too long)
+         my-branch, test2, fix  (nobody knows what it is)
+
+All lowercase, words joined by hyphens.
+
+FIRST TIME SETUP
+---------------------------------------------------------------------
+1. Clone the repo:
+       git clone https://github.com/akcw04/Grantify.git
+2. Open Grantify.slnx in Visual Studio 2026.
+3. Press F5. The app builds your local database by itself.
+4. Log in with your role's test account (see DATABASE-GUIDE.txt).
+
+EVERY WORK SESSION - THE 6 STEPS
+---------------------------------------------------------------------
+1. Go back to main and get the latest code:
+       git checkout main
+       git pull
+
+2. Update your database (Package Manager Console in Visual Studio):
+       Update-Database
+   Do not skip this. It is why "it works on my machine" happens.
+
+3. Make a branch for the ONE thing you are about to build:
+       git checkout -b feature/officer-document-verification
+
+4. Write code. Commit whenever one small piece works:
+       git add .
+       git commit -m "[Officer] Add document verify and flag buttons"
+
+   Commit message format:  [Role] What you did
+   Roles: [Student] [Officer] [Admin] [Shared]
+
+5. Push your branch:
+       git push -u origin feature/officer-document-verification
+   (After the first push, plain "git push" is enough.)
+
+6. On GitHub: open a Pull Request into main, ask a teammate to
+   approve it, merge it, then delete the branch.
+   Then go back to step 1 for your next feature.
+
+BEFORE YOU COMMIT - CHECK WHAT YOU ARE SENDING
+---------------------------------------------------------------------
+Run this and read the list:
+       git status --short --untracked-files=all
+
+You SHOULD see: .cs files, .cshtml files, .css/.js in your folder,
+and files under Migrations/ if you changed the database.
+
+You should NEVER see: bin/, obj/, .vs/, *.user, *.mdf, *.ldf,
+appsettings.Development.json, or anything with a real password in it.
+If you do, stop and ask in the group chat before committing.
+
+THE FOUR RULES (these are what stop merge conflicts)
+---------------------------------------------------------------------
+RULE 1 - ONE MIGRATION AT A TIME.
+  This is the biggest risk in the project. If two people run
+  Add-Migration at the same time, the file
+  Migrations/AppDbContextModelSnapshot.cs conflicts and cannot be
+  merged by hand.
+  So: post "TAKING MIGRATION LOCK" in the group chat. Create your
+  migration, push it, then post "MIGRATION LOCK FREE". Nobody else
+  runs Add-Migration in between. Waiting 10 minutes beats losing an
+  evening.
+
+RULE 2 - ANNOUNCE BEFORE TOUCHING SHARED FILES.
+  Shared files and how to keep them merge-safe:
+
+    Models/*.cs             everyone's tables. Add new fields at the
+                            END of the class, never reorder.
+    Data/AppDbContext.cs    one DbSet line per role. Keep the lines
+                            grouped, do not move other people's.
+    Program.cs              one service registration line per role.
+                            Add yours under your role's comment.
+    Pages/Shared/_Layout.cshtml
+                            navbar. Only edit inside YOUR
+                            @if (User.IsInRole("...")) block.
+    wwwroot/css/site.css    shared theme. Announce, and never copy
+                            shared rules into your role css.
+
+  Git merges fine when two people change DIFFERENT lines. Conflicts
+  happen when someone reformats or reorders a shared file. Don't.
+
+RULE 3 - NO SECRETS IN GIT, EVER.
+  No real passwords, no AWS keys, no RDS connection string.
+  Local settings go in appsettings.Development.json, which Git
+  already ignores. In Week 9 the RDS details go into an Elastic
+  Beanstalk environment variable, NOT into appsettings.json.
+  A leaked credential costs us marks on the security criterion.
+
+RULE 4 - MAIN MUST ALWAYS BUILD AND RUN.
+  Before you open a Pull Request, press F5 and check the app still
+  starts and your pages still load. If a merge breaks main, whoever
+  merged it fixes it first, before any other work.
+
+IF YOUR BRANCH IS A FEW DAYS OLD
+---------------------------------------------------------------------
+Bring main's changes into your branch BEFORE you open the Pull
+Request, so you fix conflicts on your own branch instead of in the PR:
+       git pull --rebase origin main
+
+WHEN SOMETHING GOES WRONG
+---------------------------------------------------------------------
+"I committed to main by accident (nothing pushed yet)"
+       git branch feature/officer-my-work
+       git reset --hard origin/main
+       git checkout feature/officer-my-work
+  (Your work is safe on the new branch.)
+
+"My migration clashes with one that reached main first"
+  Do NOT hand-edit the snapshot file. In Package Manager Console,
+  while your migration is still the newest one:
+       Remove-Migration
+  Then:
+       git pull --rebase origin main
+       Update-Database
+       Add-Migration YourChangeName
+  It regenerates cleanly against the updated database structure.
+
+"Git says I have a conflict in a shared file"
+  Open the file. Keep BOTH sides unless they truly do the same thing
+  (each role's line usually belongs). Delete the <<<<<<< ======= and
+  >>>>>>> marker lines. Build the project before committing the fix.
+
+"I have no idea what state I am in"
+       git status
+  Then paste the output in the group chat. Do not force-push to fix
+  it. "git push --force" on main can delete a teammate's work.
+
+QUICK REFERENCE
+---------------------------------------------------------------------
+  git checkout main               go back to the main branch
+  git pull                        download the team's latest code
+  git checkout -b feature/x-y     make and switch to a new branch
+  git status --short -uall        see exactly what will be committed
+  git add .                       stage all your changes
+  git commit -m "[Role] message"  save a commit locally
+  git push -u origin <branch>     upload your branch the first time
+  git branch                      list your local branches
+  git checkout <branch>           switch to another branch
+=====================================================================
