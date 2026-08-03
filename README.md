@@ -4,7 +4,7 @@ Cloud-based scholarship management system (CT071-3-3-DDAC group project). ASP.NE
 
 ## Run it locally
 1. Install Visual Studio 2026 with the "ASP.NET and web development" workload (includes LocalDB).
-2. Clone this repo, open `Grantify.sln`.
+2. Clone this repo, open `Grantify.slnx`.
 3. Press F5. The app creates and fills your local database by itself on first run.
 4. Log in with a test account (all passwords `Grantify@123`):
    - `student@grantify.test` / `officer@grantify.test` / `admin@grantify.test`
@@ -15,8 +15,9 @@ Database questions? Read **DATABASE-GUIDE.txt** (same folder as this file) — i
 
 ```
 Grantify/                        <- repo root
-├── Grantify.sln                 <- open this in Visual Studio
+├── Grantify.slnx                <- open this in Visual Studio
 ├── DATABASE-GUIDE.txt           <- read before touching the database
+├── GIT-GUIDE.txt                <- read before your first push
 └── Grantify/                    <- the web application
     │
     │  FRONTEND (what the user sees)
@@ -63,9 +64,13 @@ Access rules are set **once** in `Program.cs` (section 3): everything under `Pag
 | B | `Pages/Officer/` | `feature/officer-*` |
 | C | `Pages/Admin/` | `feature/admin-*` |
 
+Nobody codes directly on `main`. One branch per feature, merged back through a Pull Request.
+
 Shared files (`Models/`, `Data/`, `Services/`, `Pages/Shared/`, `Program.cs`) — announce in group chat before changing.
 
 Commit message format: `[Student] Add application submission form`
+
+**Read GIT-GUIDE.txt** (same folder as this file) before your first push — it has the daily 6 steps, the branch rules, and what to do when a merge or migration goes wrong.
 
 ## Code style
 - Comments in simple English: say what the code does and why, no fancy words.

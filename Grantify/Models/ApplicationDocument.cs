@@ -31,4 +31,20 @@ public class ApplicationDocument
     public DocumentStatus Status { get; set; } = DocumentStatus.Pending;
 
     public DateTime UploadedOn { get; set; }
+
+    // ----- Filled in by the officer when they check the document -----
+    // Added by Member B. In Task 2, Textract fills OfficerNote automatically
+    // with what it read from the file, and the officer only confirms it.
+
+    // Why the document was flagged, or a short note about what was checked.
+    [StringLength(500)]
+    public string? OfficerNote { get; set; }
+
+    [StringLength(450)]
+    public string? VerifiedByUserId { get; set; }
+
+    [StringLength(200)]
+    public string? VerifiedByName { get; set; }
+
+    public DateTime? VerifiedOn { get; set; }
 }

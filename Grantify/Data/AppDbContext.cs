@@ -19,4 +19,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
     public DbSet<ScholarshipApplication> ScholarshipApplications => Set<ScholarshipApplication>();
     public DbSet<ApplicationDocument> ApplicationDocuments => Set<ApplicationDocument>();
+
+    // Audit trail of officer actions (added by Member B).
+    public DbSet<ApplicationReviewLog> ApplicationReviewLogs => Set<ApplicationReviewLog>();
 }
