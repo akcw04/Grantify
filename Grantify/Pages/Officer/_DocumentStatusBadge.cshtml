@@ -1,0 +1,16 @@
+@model Grantify.Models.DocumentStatus
+
+@* OWNER: Member B. Shows one document status as a coloured pill.
+   Same idea as _ApplicationStatusBadge: the colour lives in one place.
+   Use it with:  <partial name="_DocumentStatusBadge" model="document.Status" /> *@
+
+@{
+    var (cssClass, label) = Model switch
+    {
+        DocumentStatus.Verified => ("status-verified", "Verified"),
+        DocumentStatus.Flagged => ("status-flagged", "Flagged"),
+        _ => ("status-pending", "Pending")
+    };
+}
+
+<span class="status-badge @cssClass">@label</span>
