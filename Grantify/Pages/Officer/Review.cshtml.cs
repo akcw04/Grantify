@@ -26,6 +26,16 @@ public class ReviewModel : OfficerPageModel
     // Everything the page displays. Null means the id was not found.
     public ReviewDetail? Detail { get; private set; }
 
+    // Which page the officer arrived from, so "Back" returns them there.
+    // "documents" = the document verification queue; anything else = the
+    // application queue. It travels in the URL and is passed through every
+    // save, so the officer never loses their place.
+    [BindProperty(SupportsGet = true)]
+    public string? From { get; set; }
+
+    // True when the officer came from the document queue.
+    public bool CameFromDocuments => string.Equals(From, "documents", StringComparison.OrdinalIgnoreCase);
+
     public async Task<IActionResult> OnGetAsync(int id)
     {
         Detail = await _officerService.GetReviewDetailAsync(id);
@@ -43,7 +53,7 @@ public class ReviewModel : OfficerPageModel
     {
         var officer = await GetOfficerAsync();
         ShowResult(await _officerService.StartReviewAsync(id, officer.UserId, officer.Name));
-        return RedirectToPage(new { id });
+        return RedirectToPage(new { id, from = From });
     }
 
     // Save the score, the remarks and the new status.
@@ -55,7 +65,7 @@ public class ReviewModel : OfficerPageModel
             id, newStatus, score, remarks, officer.UserId, officer.Name));
 
         // Redirect after POST: refreshing the page must not save twice.
-        return RedirectToPage(new { id });
+        return RedirectToPage(new { id, from = From });
     }
 
     // Mark one uploaded file as verified or flagged.
@@ -66,6 +76,6 @@ public class ReviewModel : OfficerPageModel
         ShowResult(await _officerService.SetDocumentStatusAsync(
             documentId, documentStatus, note, officer.UserId, officer.Name));
 
-        return RedirectToPage(new { id });
+        return RedirectToPage(new { id, from = From });
     }
 }

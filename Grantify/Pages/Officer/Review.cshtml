@@ -4,302 +4,335 @@
     ViewData["Title"] = "Review Application";
     var detail = Model.Detail!;
     var application = detail.Application;
+
+    // On a brand-new application the "Start review" button already moves it to
+    // Under review, so we do not offer the same move again in the dropdown.
+    // What is left for a Submitted application is "Rejected" — an officer may
+    // still turn one down without reviewing it in detail.
+    var decisionStatuses = application.Status == ApplicationStatus.Submitted
+        ? detail.AllowedNextStatuses.Where(s => s != ApplicationStatus.UnderReview).ToList()
+        : detail.AllowedNextStatuses.ToList();
+
+    // The screening rules only compare CGPA and income. They do NOT look at the
+    // closing date, so we warn about it here instead.
+    var deadlinePassed = application.Scholarship is not null
+                         && application.Scholarship.Deadline < DateTime.Today;
 }
 
-@* OWNER: Member B. Plain Bootstrap for now — styling comes after the Student
-   pages set the house style. *@
+@* OWNER: Member B. Styling is deliberately minimal — see officer.css. *@
 
-<div class="d-flex justify-content-between align-items-start mb-3">
-    <div>
-        <h1 class="h3 mb-1">@(application.Student?.FullName ?? "(unknown student)")</h1>
-        <div class="text-muted">
-            Applying for <strong>@(application.Scholarship?.Name ?? "(deleted scholarship)")</strong>
-            &middot; submitted @application.SubmittedOn.ToString("dd MMM yyyy")
+<div class="officer-page">
+
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+        <div>
+            <h1 class="mb-1">@(application.Student?.FullName ?? "(unknown student)")</h1>
+            <div class="cell-sub">
+                Applying for <strong>@(application.Scholarship?.Name ?? "(deleted scholarship)")</strong>
+                &middot; submitted @application.SubmittedOn.ToLocalTime().ToString("dd MMM yyyy")
+                &middot; <partial name="_ApplicationStatusBadge" model="application.Status" />
+            </div>
         </div>
+        @* Send the officer back where they came from, not always to the queue. *@
+        @if (Model.CameFromDocuments)
+        {
+            <a class="btn btn-sm btn-outline-secondary" asp-page="Documents">Back to documents</a>
+        }
+        else
+        {
+            <a class="btn btn-sm btn-outline-secondary" asp-page="Applications">Back to queue</a>
+        }
     </div>
-    <a class="btn btn-outline-secondary" asp-page="Applications">Back to queue</a>
-</div>
 
-<partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
+    <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
 
-@if (detail.IsFinished)
-{
-    <div class="alert alert-secondary">
-        This application is <strong>@application.Status</strong>. A finished decision cannot be
-        changed — this keeps the record honest once the student has been told the result.
-    </div>
-}
-
-<div class="row g-4">
-    @* ================= LEFT: the applicant ================= *@
-    <div class="col-12 col-lg-7">
-
-        @* ---------- Automated eligibility screening ---------- *@
-        <div class="card mb-4">
-            <div class="card-header">Automated eligibility screening</div>
-            <div class="card-body">
-                @if (detail.Profile is null)
-                {
-                    <div class="alert alert-warning mb-0">
-                        This student has not filled in their profile (CGPA and household income),
-                        so the system cannot screen them automatically. Check the documents by hand.
-                    </div>
-                }
-                else if (detail.Eligibility is null)
-                {
-                    <div class="alert alert-warning mb-0">
-                        The scholarship this application points to no longer exists, so screening
-                        could not run.
-                    </div>
-                }
-                else if (detail.Eligibility.IsEligible)
-                {
-                    <p class="mb-0">
-                        <span class="badge bg-success">Eligible</span>
-                        This applicant passes every rule set for this scholarship.
-                    </p>
-                }
-                else
-                {
-                    <p><span class="badge bg-danger">Not eligible</span> Reasons:</p>
-                    <ul class="mb-0">
-                        @foreach (var reason in detail.Eligibility.Reasons)
-                        {
-                            <li>@reason</li>
-                        }
-                    </ul>
-                }
-            </div>
+    @if (detail.IsFinished)
+    {
+        <div class="alert alert-secondary finished-banner">
+            This application is <strong>@application.Status</strong>. A finished decision cannot be
+            changed — this keeps the record honest once the student has been told the result.
         </div>
-
-        @* ---------- The numbers behind the screening ---------- *@
-        <div class="card mb-4">
-            <div class="card-header">Applicant details</div>
-            <div class="card-body">
-                <dl class="row mb-0">
-                    <dt class="col-sm-4">Email</dt>
-                    <dd class="col-sm-8">@(application.Student?.Email ?? "—")</dd>
-
-                    <dt class="col-sm-4">CGPA</dt>
-                    <dd class="col-sm-8">
-                        @(detail.Profile is null ? "—" : detail.Profile.Cgpa.ToString("0.00"))
-                        @if (application.Scholarship is not null)
-                        {
-                            <span class="text-muted small">
-                                (minimum @application.Scholarship.MinimumCgpa.ToString("0.00"))
-                            </span>
-                        }
-                    </dd>
-
-                    <dt class="col-sm-4">Household income</dt>
-                    <dd class="col-sm-8">
-                        @(detail.Profile is null ? "—" : $"RM {detail.Profile.HouseholdIncome:0}")
-                        @if (application.Scholarship?.MaximumHouseholdIncome is not null)
-                        {
-                            <span class="text-muted small">
-                                (limit RM @application.Scholarship.MaximumHouseholdIncome.Value.ToString("0"))
-                            </span>
-                        }
-                    </dd>
-
-                    <dt class="col-sm-4">Course</dt>
-                    <dd class="col-sm-8">@(detail.Profile?.Course ?? "—")</dd>
-
-                    <dt class="col-sm-4">Institution</dt>
-                    <dd class="col-sm-8">@(detail.Profile?.Institution ?? "—")</dd>
-
-                    <dt class="col-sm-4">Scholarship deadline</dt>
-                    <dd class="col-sm-8">
-                        @(application.Scholarship?.Deadline.ToString("dd MMM yyyy") ?? "—")
-                    </dd>
-                </dl>
-            </div>
+    }
+    else if (deadlinePassed)
+    {
+        <div class="alert alert-warning">
+            The closing date for this scholarship
+            (@application.Scholarship!.Deadline.ToString("dd MMM yyyy")) has already passed.
+            Check with the provider before approving a late application.
         </div>
+    }
 
-        @* ---------- Document verification ---------- *@
-        <div class="card mb-4">
-            <div class="card-header">
-                Supporting documents
-                @if (detail.PendingDocumentCount > 0)
-                {
-                    <span class="badge bg-secondary">@detail.PendingDocumentCount pending</span>
-                }
-                @if (detail.FlaggedDocumentCount > 0)
-                {
-                    <span class="badge bg-danger">@detail.FlaggedDocumentCount flagged</span>
-                }
-            </div>
-            <div class="card-body">
-                @if (detail.Documents.Count == 0)
-                {
-                    <p class="text-muted mb-0">The student did not upload any documents.</p>
-                }
-                else
-                {
-                    foreach (var document in detail.Documents)
+    <div class="row g-4">
+        @* ================= LEFT: the applicant ================= *@
+        <div class="col-12 col-lg-7">
+
+            @* ---------- Automated eligibility screening ---------- *@
+            <div class="review-card">
+                <div class="review-card-head">Automated eligibility screening</div>
+                <div class="review-card-body">
+                    @if (detail.Profile is null)
                     {
-                        <div class="border-bottom pb-3 mb-3">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <strong>@document.FileName</strong>
-                                    <div class="small text-muted">
-                                        uploaded @document.UploadedOn.ToString("dd MMM yyyy")
-                                        @if (document.VerifiedByName is not null)
-                                        {
-                                            <text>&middot; checked by @document.VerifiedByName</text>
-                                        }
-                                    </div>
-                                </div>
-                                <div>
-                                    @switch (document.Status)
-                                    {
-                                        case DocumentStatus.Verified:
-                                            <span class="badge bg-success">Verified</span>
-                                            break;
-                                        case DocumentStatus.Flagged:
-                                            <span class="badge bg-danger">Flagged</span>
-                                            break;
-                                        default:
-                                            <span class="badge bg-secondary">Pending</span>
-                                            break;
-                                    }
-                                </div>
-                            </div>
-
-                            @if (!string.IsNullOrWhiteSpace(document.OfficerNote))
-                            {
-                                <div class="small mt-1"><em>Note:</em> @document.OfficerNote</div>
-                            }
-
-                            @* An officer can re-check a document until the
-                               application itself is finished. *@
-                            @if (!detail.IsFinished)
-                            {
-                                <form method="post" asp-page-handler="Document" class="row g-2 mt-2">
-                                    <input type="hidden" name="id" value="@application.Id" />
-                                    <input type="hidden" name="documentId" value="@document.Id" />
-                                    <div class="col-12 col-md-6">
-                                        <input class="form-control form-control-sm" name="note"
-                                               value="@document.OfficerNote"
-                                               placeholder="Note (required when flagging)" />
-                                    </div>
-                                    <div class="col-auto">
-                                        <button type="submit" class="btn btn-sm btn-outline-success"
-                                                name="documentStatus" value="@DocumentStatus.Verified">
-                                            Verify
-                                        </button>
-                                    </div>
-                                    <div class="col-auto">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                name="documentStatus" value="@DocumentStatus.Flagged">
-                                            Flag
-                                        </button>
-                                    </div>
-                                </form>
-                            }
+                        <div class="alert alert-warning mb-0">
+                            This student has not filled in their profile (CGPA and household income),
+                            so the system cannot screen them automatically. Check the documents by hand.
                         </div>
                     }
-                }
+                    else if (detail.Eligibility is null)
+                    {
+                        <div class="alert alert-warning mb-0">
+                            The scholarship this application points to no longer exists, so screening
+                            could not run.
+                        </div>
+                    }
+                    else if (detail.Eligibility.IsEligible)
+                    {
+                        <p class="mb-0">
+                            <span class="status-badge status-approved">Eligible</span>
+                            This applicant passes every rule set for this scholarship.
+                        </p>
+                    }
+                    else
+                    {
+                        <p><span class="status-badge status-rejected">Not eligible</span> Reasons:</p>
+                        <ul class="mb-0">
+                            @foreach (var reason in detail.Eligibility.Reasons)
+                            {
+                                <li>@reason</li>
+                            }
+                        </ul>
+                    }
+                </div>
             </div>
-        </div>
-    </div>
 
-    @* ================= RIGHT: the decision ================= *@
-    <div class="col-12 col-lg-5">
+            @* ---------- The numbers behind the screening ---------- *@
+            <div class="review-card">
+                <div class="review-card-head">Applicant details</div>
+                <div class="review-card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Email</dt>
+                        <dd class="col-sm-8">@(application.Student?.Email ?? "—")</dd>
 
-        <div class="card mb-4">
-            <div class="card-header">Decision</div>
-            <div class="card-body">
-                <p>
-                    Current status: <strong>@application.Status</strong><br />
-                    Current score: <strong>@(application.Score?.ToString() ?? "not scored")</strong>
-                </p>
+                        <dt class="col-sm-4">CGPA</dt>
+                        <dd class="col-sm-8">
+                            @(detail.Profile is null ? "—" : detail.Profile.Cgpa.ToString("0.00"))
+                            @if (application.Scholarship is not null)
+                            {
+                                <span class="cell-sub">
+                                    (minimum @application.Scholarship.MinimumCgpa.ToString("0.00"))
+                                </span>
+                            }
+                        </dd>
 
-                @if (application.Status == ApplicationStatus.Submitted)
-                {
-                    <p class="text-muted">
-                        Nobody has opened this application yet. Start the review to claim it,
-                        so two officers do not work on the same student.
-                    </p>
-                    <form method="post" asp-page-handler="StartReview">
-                        <input type="hidden" name="id" value="@application.Id" />
-                        <button type="submit" class="btn btn-primary">Start review</button>
-                    </form>
-                }
+                        <dt class="col-sm-4">Household income</dt>
+                        <dd class="col-sm-8">
+                            @(detail.Profile is null ? "—" : $"RM {detail.Profile.HouseholdIncome:0}")
+                            @if (application.Scholarship?.MaximumHouseholdIncome is not null)
+                            {
+                                <span class="cell-sub">
+                                    (limit RM @application.Scholarship.MaximumHouseholdIncome.Value.ToString("0"))
+                                </span>
+                            }
+                        </dd>
 
-                @if (detail.AllowedNextStatuses.Count > 0)
-                {
-                    <hr />
-                    <form method="post" asp-page-handler="Decision">
-                        <input type="hidden" name="id" value="@application.Id" />
+                        <dt class="col-sm-4">Course</dt>
+                        <dd class="col-sm-8">@(detail.Profile?.Course ?? "—")</dd>
 
-                        <div class="mb-3">
-                            <label class="form-label" for="score">Score (0–100)</label>
-                            <input class="form-control" type="number" id="score" name="score"
-                                   min="0" max="100" value="@application.Score" />
-                            <div class="form-text">Needed before you can shortlist or approve.</div>
-                        </div>
+                        <dt class="col-sm-4">Institution</dt>
+                        <dd class="col-sm-8">@(detail.Profile?.Institution ?? "—")</dd>
 
-                        <div class="mb-3">
-                            <label class="form-label" for="remarks">Remarks</label>
-                            <textarea class="form-control" id="remarks" name="remarks" rows="4"
-                                      placeholder="Why this decision? The student may be shown this.">@application.OfficerRemarks</textarea>
-                            <div class="form-text">Required when you reject an application.</div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label" for="newStatus">Move to</label>
-                            @* Only the statuses the rules actually allow from here. *@
-                            <select class="form-select" id="newStatus" name="newStatus">
-                                @foreach (var status in detail.AllowedNextStatuses)
-                                {
-                                    <option value="@status"
-                                            selected="@(status == application.Status)">
-                                        @(status == application.Status ? $"{status} (just save my notes)" : status.ToString())
-                                    </option>
-                                }
-                            </select>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">Save decision</button>
-                    </form>
-                }
-                else if (!detail.IsFinished && application.Status != ApplicationStatus.Submitted)
-                {
-                    <p class="text-muted mb-0">There is no next step available for this application.</p>
-                }
+                        <dt class="col-sm-4">Scholarship deadline</dt>
+                        <dd class="col-sm-8">
+                            @(application.Scholarship?.Deadline.ToString("dd MMM yyyy") ?? "—")
+                        </dd>
+                    </dl>
+                </div>
             </div>
-        </div>
 
-        @* ---------- Audit trail ---------- *@
-        <div class="card">
-            <div class="card-header">Review history</div>
-            <div class="card-body">
-                @if (detail.History.Count == 0)
-                {
-                    <p class="text-muted mb-0">Nothing has happened to this application yet.</p>
-                }
-                else
-                {
-                    <ul class="list-unstyled mb-0">
-                        @foreach (var entry in detail.History)
+            @* ---------- Document verification ---------- *@
+            <div class="review-card">
+                <div class="review-card-head">
+                    Supporting documents
+                    @if (detail.PendingDocumentCount > 0)
+                    {
+                        <span class="status-badge status-pending">@detail.PendingDocumentCount pending</span>
+                    }
+                    @if (detail.FlaggedDocumentCount > 0)
+                    {
+                        <span class="status-badge status-flagged">@detail.FlaggedDocumentCount flagged</span>
+                    }
+                </div>
+                <div class="review-card-body">
+                    @if (detail.Documents.Count == 0)
+                    {
+                        <p class="text-muted mb-0">The student did not upload any documents.</p>
+                    }
+                    else
+                    {
+                        foreach (var document in detail.Documents)
                         {
-                            <li class="mb-3">
-                                <div><strong>@entry.Action</strong></div>
-                                <div class="small text-muted">
-                                    @entry.OfficerName &middot; @entry.CreatedOn.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                            <div class="document-row">
+                                <div class="d-flex justify-content-between align-items-start gap-2">
+                                    <div>
+                                        <div class="document-name">@document.FileName</div>
+                                        <div class="cell-sub">
+                                            uploaded @document.UploadedOn.ToLocalTime().ToString("dd MMM yyyy")
+                                            @if (document.VerifiedByName is not null)
+                                            {
+                                                <text>&middot; checked by @document.VerifiedByName</text>
+                                            }
+                                        </div>
+                                    </div>
+                                    <partial name="_DocumentStatusBadge" model="document.Status" />
                                 </div>
-                                @if (!string.IsNullOrWhiteSpace(entry.Details))
+
+                                @if (!string.IsNullOrWhiteSpace(document.OfficerNote))
                                 {
-                                    <div class="small">@entry.Details</div>
+                                    <div class="cell-sub mt-1"><em>Note:</em> @document.OfficerNote</div>
                                 }
-                            </li>
+
+                                @* An officer can re-check a document until the
+                                   application itself is finished. The note box starts
+                                   EMPTY on purpose — carrying the old note forward
+                                   would attach a flagging reason to a verification. *@
+                                @if (!detail.IsFinished)
+                                {
+                                    <form method="post" asp-page-handler="Document" class="row g-2 mt-2">
+                                        <input type="hidden" name="id" value="@application.Id" />
+                                        <input type="hidden" name="from" value="@Model.From" />
+                                        <input type="hidden" name="documentId" value="@document.Id" />
+                                        <div class="col-12 col-md-6">
+                                            <input class="form-control form-control-sm" name="note"
+                                                   placeholder="Note (required when flagging)" />
+                                        </div>
+                                        <div class="col-auto">
+                                            <button type="submit" class="btn btn-sm btn-outline-success"
+                                                    name="documentStatus" value="@DocumentStatus.Verified">
+                                                Verify
+                                            </button>
+                                        </div>
+                                        <div class="col-auto">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    name="documentStatus" value="@DocumentStatus.Flagged">
+                                                Flag
+                                            </button>
+                                        </div>
+                                    </form>
+                                }
+                            </div>
                         }
-                    </ul>
-                }
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* ================= RIGHT: the decision ================= *@
+        <div class="col-12 col-lg-5">
+
+            <div class="review-card">
+                <div class="review-card-head">Decision</div>
+                <div class="review-card-body">
+                    <dl class="row mb-3">
+                        <dt class="col-6">Current status</dt>
+                        <dd class="col-6"><partial name="_ApplicationStatusBadge" model="application.Status" /></dd>
+                        <dt class="col-6">Current score</dt>
+                        <dd class="col-6">@(application.Score?.ToString() ?? "not scored")</dd>
+                    </dl>
+
+                    @if (application.Status == ApplicationStatus.Submitted)
+                    {
+                        <p class="cell-sub">
+                            Nobody has opened this application yet. Start the review to claim it,
+                            so two officers do not work on the same student.
+                        </p>
+                        <form method="post" asp-page-handler="StartReview" class="mb-3">
+                            <input type="hidden" name="id" value="@application.Id" />
+                            <input type="hidden" name="from" value="@Model.From" />
+                            <button type="submit" class="btn btn-primary">Start review</button>
+                        </form>
+                    }
+
+                    @if (decisionStatuses.Count > 0)
+                    {
+                        <hr />
+                        @* data-confirm-decision makes officer.js ask "are you sure?"
+                           but ONLY when the chosen status is Approved or Rejected,
+                           because those two cannot be undone. *@
+                        <form method="post" asp-page-handler="Decision"
+                              data-confirm-decision
+                              data-student="@(application.Student?.FullName ?? "this student")">
+                            <input type="hidden" name="id" value="@application.Id" />
+                            <input type="hidden" name="from" value="@Model.From" />
+
+                            <div class="mb-3">
+                                <label class="form-label" for="score">Score (0–100)</label>
+                                <input class="form-control" type="number" id="score" name="score"
+                                       min="0" max="100" value="@application.Score" />
+                                <div class="form-text">Needed before you can shortlist or approve.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="remarks">Remarks</label>
+                                <textarea class="form-control" id="remarks" name="remarks" rows="4"
+                                          placeholder="Why this decision? The student may be shown this.">@application.OfficerRemarks</textarea>
+                                <div class="form-text">Required when you reject an application.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="newStatus">Move to</label>
+                                @* Only the statuses the rules actually allow from here. *@
+                                <select class="form-select" id="newStatus" name="newStatus">
+                                    @foreach (var status in decisionStatuses)
+                                    {
+                                        <option value="@status" selected="@(status == application.Status)">
+                                            @(status == application.Status
+                                                ? $"{status} (just save my notes)"
+                                                : status.ToString())
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Save decision</button>
+                        </form>
+                    }
+                    else if (!detail.IsFinished)
+                    {
+                        <p class="text-muted mb-0">There is no next step available for this application.</p>
+                    }
+                </div>
+            </div>
+
+            @* ---------- Audit trail ---------- *@
+            <div class="review-card">
+                <div class="review-card-head">Review history</div>
+                <div class="review-card-body">
+                    @if (detail.History.Count == 0)
+                    {
+                        <p class="text-muted mb-0">Nothing has happened to this application yet.</p>
+                    }
+                    else
+                    {
+                        <ul class="history-list">
+                            @foreach (var entry in detail.History)
+                            {
+                                <li class="history-item">
+                                    <div class="history-action">@entry.Action</div>
+                                    <div class="history-meta">
+                                        @entry.OfficerName &middot;
+                                        @entry.CreatedOn.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(entry.Details))
+                                    {
+                                        <div class="history-detail">@entry.Details</div>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
             </div>
         </div>
     </div>
+
 </div>
 
 @section Styles {

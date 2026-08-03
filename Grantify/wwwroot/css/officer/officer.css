@@ -2,10 +2,213 @@
    This file loads on top of the shared site.css — only add here,
    do not repeat or fight the shared theme.
    How to load it on your page: see the @section Styles block
-   at the bottom of Pages/Officer/Index.cshtml. */
+   at the bottom of Pages/Officer/Index.cshtml.
 
-/* Example: officer pages get a green accent under the page title. */
-h1 {
-    border-bottom: 3px solid #198754;
-    padding-bottom: .25rem;
+   DELIBERATELY MINIMAL. This is spacing, colour and readability only —
+   enough to test the pages properly. It stays close to plain Bootstrap so
+   that when the team agrees a shared theme in site.css, this file can be
+   trimmed instead of rewritten. Nothing here changes how anything works. */
+
+/* ---------- Colours used across the officer pages ----------
+   Named by MEANING, not by colour, so the team can re-theme by editing
+   these five lines and nothing else. */
+.officer-page {
+    --officer-accent: #0d6efd; /* same blue as Bootstrap's primary */
+    --officer-line: #dee2e6;
+    --officer-muted: #6c757d;
+    --officer-surface: #f8f9fa;
+}
+
+/* ---------- Page heading ---------- */
+.officer-page h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    padding-bottom: .5rem;
+    border-bottom: 2px solid var(--officer-accent);
+    margin-bottom: .75rem;
+}
+
+.officer-page h2 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+}
+
+/* ---------- Dashboard number tiles ---------- */
+.stat-card {
+    height: 100%;
+    border: 1px solid var(--officer-line);
+    border-radius: .5rem;
+    background: #fff;
+    padding: .9rem 1rem;
+}
+
+.stat-card .stat-label {
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--officer-muted);
+}
+
+.stat-card .stat-value {
+    font-size: 1.9rem;
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.stat-card .stat-note {
+    font-size: .8rem;
+    color: var(--officer-muted);
+}
+
+/* Tile that needs attention gets a coloured left edge. */
+.stat-card.stat-attention {
+    border-left: 4px solid #ffc107;
+}
+
+/* ---------- Status badges ----------
+   One class per status so the colour of "Approved" is defined ONCE and is
+   identical on the dashboard, the queue and the review page. */
+.status-badge {
+    display: inline-block;
+    font-size: .75rem;
+    font-weight: 600;
+    padding: .2rem .55rem;
+    border-radius: 1rem;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.status-submitted   { background: #e7f1ff; color: #0a58ca; border-color: #b6d4fe; }
+.status-underreview { background: #fff3cd; color: #664d03; border-color: #ffe69c; }
+.status-shortlisted { background: #e2d9f3; color: #432874; border-color: #cbbbe9; }
+.status-approved    { background: #d1e7dd; color: #0f5132; border-color: #a3cfbb; }
+.status-rejected    { background: #f8d7da; color: #842029; border-color: #f1aeb5; }
+
+.status-pending     { background: #e9ecef; color: #41464b; border-color: #ced4da; }
+.status-verified    { background: #d1e7dd; color: #0f5132; border-color: #a3cfbb; }
+.status-flagged     { background: #f8d7da; color: #842029; border-color: #f1aeb5; }
+
+/* ---------- Queue table ---------- */
+.queue-table {
+    font-size: .925rem;
+}
+
+.queue-table thead th {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--officer-muted);
+    border-bottom-width: 1px;
+    white-space: nowrap;
+}
+
+.queue-table td {
+    vertical-align: middle;
+}
+
+/* The student's email under their name, and similar second lines. */
+.cell-sub {
+    font-size: .8rem;
+    color: var(--officer-muted);
+}
+
+/* Rows past their deadline get a warning edge so they stand out. */
+.queue-table tr.row-overdue td:first-child {
+    box-shadow: inset 3px 0 0 #ffc107;
+}
+
+/* ---------- Filter bar ---------- */
+.filter-bar {
+    background: var(--officer-surface);
+    border: 1px solid var(--officer-line);
+    border-radius: .5rem;
+    padding: .85rem;
+}
+
+.filter-bar label {
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--officer-muted);
+    margin-bottom: .15rem;
+}
+
+/* ---------- Review page ---------- */
+.review-card {
+    border: 1px solid var(--officer-line);
+    border-radius: .5rem;
+    margin-bottom: 1.25rem;
+    background: #fff;
+}
+
+.review-card > .review-card-head {
+    padding: .6rem .9rem;
+    border-bottom: 1px solid var(--officer-line);
+    background: var(--officer-surface);
+    font-weight: 600;
+    font-size: .95rem;
+    border-radius: .5rem .5rem 0 0;
+}
+
+.review-card > .review-card-body {
+    padding: .9rem;
+}
+
+/* One uploaded document inside the review page. */
+.document-row {
+    padding-bottom: .85rem;
+    margin-bottom: .85rem;
+    border-bottom: 1px dashed var(--officer-line);
+}
+
+.document-row:last-child {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-bottom: 0;
+}
+
+.document-name {
+    font-weight: 600;
+    word-break: break-all;
+}
+
+/* Audit trail entries. */
+.history-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.history-item {
+    padding-left: .9rem;
+    border-left: 2px solid var(--officer-line);
+    padding-bottom: .9rem;
+}
+
+.history-item:last-child {
+    padding-bottom: 0;
+}
+
+.history-action {
+    font-weight: 600;
+    font-size: .925rem;
+}
+
+.history-meta {
+    font-size: .78rem;
+    color: var(--officer-muted);
+}
+
+.history-detail {
+    font-size: .85rem;
+}
+
+/* The read-only banner on a finished application. */
+.finished-banner {
+    border-left: 4px solid var(--officer-muted);
+}
+
+/* Keep wide tables scrollable instead of breaking the page on a laptop. */
+.table-scroll {
+    overflow-x: auto;
 }
