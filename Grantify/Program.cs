@@ -47,6 +47,7 @@ builder.Services.AddRazorPages(options =>
 builder.Services.AddScoped<ScholarshipService>();
 builder.Services.AddScoped<EligibilityService>();
 builder.Services.AddScoped<OfficerService>();   // Member B — Officer role
+builder.Services.AddScoped<StudentService>();   // Member A — Student role
 
 var app = builder.Build();
 

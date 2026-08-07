@@ -4,26 +4,101 @@
     ViewData["Title"] = "Student Dashboard";
 }
 
-@* OWNER: Member A (Student role). Build all student pages inside Pages/Student/. *@
+@* OWNER: Member A (Student role). Build all student pages inside Pages/Student/.
+   STYLING NOTE: deliberately minimal - spacing and colour only, close to plain
+   Bootstrap, matching the Officer pages. *@
 
-<h1>Student Dashboard</h1>
-<p class="lead">Welcome, this area is only visible to users with the <strong>Student</strong> role.</p>
+<div class="student-page">
 
-<div class="alert alert-info">
-    <strong>To build (Member A):</strong>
-    <ul class="mb-0">
-        <li>Manage my profile (CGPA, household income, course)</li>
-        <li>Browse and search scholarships + see my eligibility result</li>
-        <li>Submit an application and upload documents</li>
-        <li>Track my application status and notifications</li>
-    </ul>
+    <h1>Student Dashboard</h1>
+    <p class="text-muted">Welcome, @User.Identity?.Name.</p>
+
+    <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
+
+    @if (!Model.Dashboard.ProfileComplete)
+    {
+        <div class="alert alert-warning">
+            Your profile is not complete, so the eligibility check cannot run properly.
+            <a asp-page="Profile" class="alert-link">Complete it now</a>.
+        </div>
+    }
+
+    @* ---------- Counts ---------- *@
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-label">Open scholarships</div>
+                <div class="stat-value">@Model.Dashboard.OpenScholarships</div>
+                <div class="stat-note">accepting applications now</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-label">My applications</div>
+                <div class="stat-value">@Model.Dashboard.TotalApplications</div>
+                <div class="stat-note">submitted in total</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-label">In progress</div>
+                <div class="stat-value">@Model.Dashboard.InProgress</div>
+                <div class="stat-note">waiting on a decision</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-label">Approved</div>
+                <div class="stat-value">@Model.Dashboard.Approved</div>
+                <div class="stat-note">@Model.Dashboard.Rejected not successful</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="h6">Recent applications</h2>
+
+                    @if (Model.Recent.Count == 0)
+                    {
+                        <p class="text-muted small mb-0">Nothing yet.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var app in Model.Recent)
+                            {
+                                <li class="d-flex justify-content-between border-bottom py-2">
+                                    <div>
+                                        <a asp-page="Apply" asp-route-id="@app.Id">@app.Scholarship?.Name</a>
+                                        <div class="small text-muted">@app.SubmittedOn.ToString("dd MMM yyyy")</div>
+                                    </div>
+                                    <span class="small">@app.Status</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="h6">Next steps</h2>
+                    <div class="d-grid gap-2">
+                        <a asp-page="Profile" class="btn btn-outline-primary btn-sm">Update my profile</a>
+                        <a asp-page="Scholarships" class="btn btn-primary btn-sm">Find scholarships</a>
+                        <a asp-page="Applications" class="btn btn-outline-secondary btn-sm">Track my applications</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-@* These two blocks load the Student-only css and js on this page.
-   Copy them onto every new Student page you create. *@
 @section Styles {
     <link rel="stylesheet" href="~/css/student/student.css" asp-append-version="true" />
-}
-@section Scripts {
-    <script src="~/js/student/student.js" asp-append-version="true"></script>
 }

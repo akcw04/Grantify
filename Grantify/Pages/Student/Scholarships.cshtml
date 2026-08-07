@@ -1,0 +1,134 @@
+@page
+@model Grantify.Pages.Student.ScholarshipsModel
+@{
+    ViewData["Title"] = "Find Scholarships";
+}
+
+@* OWNER: Member A (Student role). #2 - browse, search, and the eligibility result. *@
+
+<div class="student-page">
+
+    <h1>Find Scholarships</h1>
+    <p class="text-muted">
+        Every scholarship below is checked against your profile, with the reason for anything you do not meet.
+    </p>
+
+    <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
+
+    @if (!Model.ProfileComplete)
+    {
+        <div class="alert alert-warning">
+            Your profile is incomplete, so these results are not accurate yet.
+            <a asp-page="Profile" class="alert-link">Complete your profile</a> first.
+        </div>
+    }
+
+    @* ---------- Search ---------- *@
+    <form method="get" class="row g-2 align-items-end mb-4">
+        <div class="col-md-6">
+            <label asp-for="Search" class="form-label">Search</label>
+            <input asp-for="Search" class="form-control" placeholder="Name or provider" />
+        </div>
+        <div class="col-md-3">
+            <div class="form-check">
+                <input asp-for="EligibleOnly" class="form-check-input" />
+                <label asp-for="EligibleOnly" class="form-check-label">Only ones I qualify for</label>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a asp-page="Scholarships" class="btn btn-outline-secondary">Reset</a>
+        </div>
+    </form>
+
+    <p class="text-muted small">@Model.Items.Count scholarship(s) found.</p>
+
+    @if (Model.Items.Count == 0)
+    {
+        <div class="alert alert-light border">No scholarships match your search.</div>
+    }
+
+    <div class="row g-3">
+        @foreach (var item in Model.Items)
+        {
+            <div class="col-md-6 col-xl-4">
+                <div class="card h-100 scholarship-card">
+                    <div class="card-body d-flex flex-column">
+
+                        @* ---------- Eligibility verdict ---------- *@
+                        @if (item.Eligibility.IsEligible)
+                        {
+                            <span class="badge bg-success align-self-start mb-2">You are eligible</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger align-self-start mb-2">Not eligible</span>
+                        }
+
+                        <h2 class="h6 mb-1">@item.Scholarship.Name</h2>
+                        <div class="text-muted small mb-2">@item.Scholarship.Provider</div>
+
+                        <p class="small mb-2">@item.Scholarship.Description</p>
+
+                        <div class="small mb-2">
+                            <div>Minimum CGPA: <strong>@item.Scholarship.MinimumCgpa.ToString("0.00")</strong></div>
+                            @if (item.Scholarship.MaximumHouseholdIncome is not null)
+                            {
+                                <div>
+                                    Income limit:
+                                    <strong>RM @item.Scholarship.MaximumHouseholdIncome.Value.ToString("N0")</strong>
+                                </div>
+                            }
+                            <div>
+                                Closes @item.Scholarship.Deadline.ToString("dd MMM yyyy")
+                                @if (item.IsOpen && item.DaysLeft <= 14)
+                                {
+                                    <span class="text-danger">(@item.DaysLeft day(s) left)</span>
+                                }
+                            </div>
+                        </div>
+
+                        @* ---------- Why not eligible ---------- *@
+                        @if (!item.Eligibility.IsEligible)
+                        {
+                            <ul class="small text-danger ps-3 mb-2">
+                                @foreach (var reason in item.Eligibility.Reasons)
+                                {
+                                    <li>@reason</li>
+                                }
+                            </ul>
+                        }
+
+                        @* ---------- Action ---------- *@
+                        <div class="mt-auto pt-2">
+                            @if (item.MyApplication is not null)
+                            {
+                                <a asp-page="Apply" asp-route-id="@item.MyApplication.Id"
+                                   class="btn btn-outline-primary btn-sm w-100">
+                                    Applied - open my application
+                                </a>
+                            }
+                            else if (!item.IsOpen)
+                            {
+                                <button class="btn btn-secondary btn-sm w-100" disabled>Applications closed</button>
+                            }
+                            else
+                            {
+                                <form method="post" asp-page-handler="Apply">
+                                    <input type="hidden" name="scholarshipId" value="@item.Scholarship.Id" />
+                                    <input type="hidden" name="Search" value="@Model.Search" />
+                                    <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
+                                </form>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/student/student.css" asp-append-version="true" />
+}

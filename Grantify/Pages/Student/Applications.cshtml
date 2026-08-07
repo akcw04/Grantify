@@ -1,0 +1,90 @@
+@page
+@model Grantify.Pages.Student.ApplicationsModel
+@{
+    ViewData["Title"] = "My Applications";
+}
+
+@* OWNER: Member A (Student role). #4 - track every application. *@
+
+<div class="student-page">
+
+    <h1>My Applications</h1>
+    <p class="text-muted">Where each of your applications has got to.</p>
+
+    <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
+
+    @if (Model.Applications.Count == 0)
+    {
+        <div class="alert alert-light border">
+            You have not applied for anything yet.
+            <a asp-page="Scholarships" class="alert-link">Browse scholarships</a>.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Scholarship</th>
+                        <th>Submitted</th>
+                        <th>Documents</th>
+                        <th>Status</th>
+                        <th>Score</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var app in Model.Applications)
+                    {
+                        var verified = app.Documents.Count(d => d.Status == DocumentStatus.Verified);
+                        var flagged = app.Documents.Count(d => d.Status == DocumentStatus.Flagged);
+
+                        <tr>
+                            <td>
+                                <strong>@app.Scholarship?.Name</strong>
+                                <div class="small text-muted">@app.Scholarship?.Provider</div>
+                            </td>
+                            <td class="small">@app.SubmittedOn.ToString("dd MMM yyyy")</td>
+                            <td class="small">
+                                @verified / @app.Documents.Count verified
+                                @if (flagged > 0)
+                                {
+                                    <div><span class="badge bg-danger">@flagged flagged</span></div>
+                                }
+                            </td>
+                            <td>
+                                @switch (app.Status)
+                                {
+                                    case ApplicationStatus.Approved:
+                                        <span class="badge bg-success">Approved</span>
+                                        break;
+                                    case ApplicationStatus.Rejected:
+                                        <span class="badge bg-danger">Rejected</span>
+                                        break;
+                                    case ApplicationStatus.Shortlisted:
+                                        <span class="badge bg-primary">Shortlisted</span>
+                                        break;
+                                    case ApplicationStatus.UnderReview:
+                                        <span class="badge bg-warning text-dark">Under review</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary">Submitted</span>
+                                        break;
+                                }
+                            </td>
+                            <td class="small">@(app.Score is null ? "-" : app.Score.ToString())</td>
+                            <td class="text-end">
+                                <a asp-page="Apply" asp-route-id="@app.Id" class="btn btn-outline-primary btn-sm">Open</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/student/student.css" asp-append-version="true" />
+}
