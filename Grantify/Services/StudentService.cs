@@ -11,6 +11,7 @@ namespace Grantify.Services;
 // GetCatalogueAsync                            - #2 browse + eligibility
 // ApplyAsync / SaveDocumentAsync               - #3 apply + upload
 // GetMyApplicationsAsync / GetApplicationAsync - #4 track
+// SyncNotificationsAsync / GetNotificationsAsync - #4 notifications
 public class StudentService
 {
     private readonly AppDbContext _db;
@@ -266,6 +267,128 @@ public class StudentService
             .FirstOrDefaultAsync(a => a.Id == applicationId && a.StudentUserId == userId);
     }
 
+    // ---------- #4 Notifications ----------
+
+    // Turns any new officer actions into notifications for this student.
+    //
+    // Nothing pushes to us: the officer pages write their audit trail
+    // (ApplicationReviewLog) and we read it. Each log line becomes at most one
+    // notification, matched on SourceLogId, so calling this repeatedly is safe.
+    //
+    // Task 2: this is the point where the message also goes out by SNS/SES.
+    public async Task<int> SyncNotificationsAsync(string userId)
+    {
+        // Every officer action on an application belonging to this student.
+        var logs = await _db.ApplicationReviewLogs
+            .Include(l => l.Application)
+                .ThenInclude(a => a!.Scholarship)
+            .Where(l => l.Application != null && l.Application.StudentUserId == userId)
+            .OrderBy(l => l.CreatedOn)
+            .ToListAsync();
+
+        if (logs.Count == 0) return 0;
+
+        // Which ones already produced a notification.
+        var alreadyDone = await _db.Notifications
+            .Where(n => n.UserId == userId)
+            .Select(n => n.SourceLogId)
+            .ToListAsync();
+
+        var created = 0;
+
+        foreach (var log in logs)
+        {
+            if (alreadyDone.Contains(log.Id)) continue;
+
+            var scholarshipName = log.Application?.Scholarship?.Name ?? "your scholarship";
+
+            _db.Notifications.Add(new Notification
+            {
+                UserId = userId,
+                ScholarshipApplicationId = log.ScholarshipApplicationId,
+                Title = BuildTitle(log, scholarshipName),
+                Message = BuildMessage(log, scholarshipName),
+                SourceLogId = log.Id,
+                IsRead = false,
+                CreatedOn = log.CreatedOn
+            });
+
+            created++;
+        }
+
+        if (created > 0) await _db.SaveChangesAsync();
+        return created;
+    }
+
+    // A short headline for the message list.
+    private static string BuildTitle(ApplicationReviewLog log, string scholarshipName)
+    {
+        return log.ToStatus switch
+        {
+            ApplicationStatus.Approved => "Your application was approved",
+            ApplicationStatus.Rejected => "Your application was not successful",
+            ApplicationStatus.Shortlisted => "You have been shortlisted",
+            ApplicationStatus.UnderReview => "Your application is being reviewed",
+            _ => $"Update on {scholarshipName}"
+        };
+    }
+
+    // The sentence the student reads. The officer's own note is included when
+    // there is one, so a rejection always comes with its reason.
+    private static string BuildMessage(ApplicationReviewLog log, string scholarshipName)
+    {
+        var text = log.ToStatus switch
+        {
+            ApplicationStatus.Approved =>
+                $"Congratulations. Your application for \"{scholarshipName}\" has been approved.",
+            ApplicationStatus.Rejected =>
+                $"Your application for \"{scholarshipName}\" was not successful on this occasion.",
+            ApplicationStatus.Shortlisted =>
+                $"Good news - your application for \"{scholarshipName}\" has been shortlisted.",
+            ApplicationStatus.UnderReview =>
+                $"A scholarship officer has started reviewing your application for \"{scholarshipName}\".",
+            _ => $"{log.Action} on your application for \"{scholarshipName}\"."
+        };
+
+        if (!string.IsNullOrWhiteSpace(log.Details))
+        {
+            text += $" Officer remarks: {log.Details}";
+        }
+
+        return text.Length > 1000 ? text[..1000] : text;
+    }
+
+    public async Task<List<Notification>> GetNotificationsAsync(string userId)
+    {
+        await SyncNotificationsAsync(userId);
+
+        return await _db.Notifications
+            .Include(n => n.Application)
+                .ThenInclude(a => a!.Scholarship)
+            .Where(n => n.UserId == userId)
+            .OrderByDescending(n => n.CreatedOn)
+            .ThenByDescending(n => n.Id)
+            .Take(50)
+            .ToListAsync();
+    }
+
+    public async Task<int> CountUnreadAsync(string userId)
+    {
+        await SyncNotificationsAsync(userId);
+        return await _db.Notifications.CountAsync(n => n.UserId == userId && !n.IsRead);
+    }
+
+    public async Task MarkAllReadAsync(string userId)
+    {
+        var unread = await _db.Notifications
+            .Where(n => n.UserId == userId && !n.IsRead)
+            .ToListAsync();
+
+        foreach (var notification in unread) notification.IsRead = true;
+
+        await _db.SaveChangesAsync();
+    }
+
     // Counts for the dashboard tiles.
     public class StudentDashboard
     {
@@ -275,6 +398,7 @@ public class StudentService
         public int Approved { get; set; }
         public int Rejected { get; set; }
         public bool ProfileComplete { get; set; }
+        public int UnreadNotifications { get; set; }
     }
 
     public async Task<StudentDashboard> GetDashboardAsync(string userId)
@@ -295,7 +419,8 @@ public class StudentService
                                               || a.Status == ApplicationStatus.Shortlisted),
             Approved = applications.Count(a => a.Status == ApplicationStatus.Approved),
             Rejected = applications.Count(a => a.Status == ApplicationStatus.Rejected),
-            ProfileComplete = IsProfileComplete(profile)
+            ProfileComplete = IsProfileComplete(profile),
+            UnreadNotifications = await CountUnreadAsync(userId)
         };
     }
 }

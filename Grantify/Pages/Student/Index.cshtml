@@ -92,6 +92,13 @@
                         <a asp-page="Profile" class="btn btn-outline-primary btn-sm">Update my profile</a>
                         <a asp-page="Scholarships" class="btn btn-primary btn-sm">Find scholarships</a>
                         <a asp-page="Applications" class="btn btn-outline-secondary btn-sm">Track my applications</a>
+                        <a asp-page="Notifications" class="btn btn-outline-secondary btn-sm">
+                            Notifications
+                            @if (Model.Dashboard.UnreadNotifications > 0)
+                            {
+                                <span class="badge bg-primary">@Model.Dashboard.UnreadNotifications</span>
+                            }
+                        </a>
                     </div>
                 </div>
             </div>
