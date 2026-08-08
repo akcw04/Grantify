@@ -319,6 +319,17 @@
                                     <div class="history-meta">
                                         @entry.OfficerName &middot;
                                         @entry.CreatedOn.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                                        @* Tell the officer whether the applicant sees this line,
+                                           so nobody writes a private note expecting it to stay private. *@
+                                        &middot;
+                                        @if (entry.IsStudentVisible)
+                                        {
+                                            <span title="The student is notified of this">shown to student</span>
+                                        }
+                                        else
+                                        {
+                                            <span title="Officers only — the student never sees this">internal only</span>
+                                        }
                                     </div>
                                     @if (!string.IsNullOrWhiteSpace(entry.Details))
                                     {

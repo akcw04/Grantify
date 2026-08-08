@@ -259,7 +259,10 @@ public class OfficerService
         application.Status = ApplicationStatus.UnderReview;
         Stamp(application, officerUserId, officerName);
 
-        AddLog(applicationId, officerUserId, officerName, "Started review", null, from, application.Status);
+        // Student may see this: knowing somebody picked up their application is
+        // reassuring, and it gives away nothing internal.
+        AddLog(applicationId, officerUserId, officerName, "Started review", null, from, application.Status,
+            studentVisible: true);
 
         await _db.SaveChangesAsync();
         return ServiceResult.Ok("Review started. This application is now marked as under review.");
@@ -354,7 +357,12 @@ public class OfficerService
 
         // "Decision: Approved" reads better in the history than just "Approved".
         var action = from == newStatus ? "Updated review" : $"Decision: {newStatus}";
-        AddLog(applicationId, officerUserId, officerName, action, effectiveRemarks, from, newStatus);
+
+        // A real decision is meant for the student, and the remarks go with it
+        // so a rejection always carries its reason. Simply re-saving notes
+        // without changing the status is not news — keep that one internal.
+        AddLog(applicationId, officerUserId, officerName, action, effectiveRemarks, from, newStatus,
+            studentVisible: from != newStatus);
 
         await _db.SaveChangesAsync();
 
@@ -407,9 +415,14 @@ public class OfficerService
         document.VerifiedByName = officerName;
         document.VerifiedOn = DateTime.UtcNow;
 
+        // INTERNAL ONLY. Document notes are working notes between officers
+        // ("suspect forged stamp, check with the registry"). They must never be
+        // pushed to the applicant. If a flagged document needs the student to
+        // act, the officer says so in the application remarks instead.
         AddLog(document.ScholarshipApplicationId, officerUserId, officerName,
             $"Document {newStatus.ToString().ToLower()}: {document.FileName}",
-            document.OfficerNote, null, null);
+            document.OfficerNote, null, null,
+            studentVisible: false);
 
         await _db.SaveChangesAsync();
         return ServiceResult.Ok($"\"{document.FileName}\" marked as {newStatus}.");
@@ -460,6 +473,10 @@ public class OfficerService
 
     // Adds one history row. Note it only stages the row — the calling method
     // saves, so the change and its log entry are written together.
+    //
+    // studentVisible has NO default on purpose. Every new kind of log entry has
+    // to state whether the applicant may be shown it, so nothing internal can
+    // reach a student just because somebody forgot to think about it.
     private void AddLog(
         int applicationId,
         string officerUserId,
@@ -467,7 +484,8 @@ public class OfficerService
         string action,
         string? details,
         ApplicationStatus? from,
-        ApplicationStatus? to)
+        ApplicationStatus? to,
+        bool studentVisible)
     {
         _db.ApplicationReviewLogs.Add(new ApplicationReviewLog
         {
@@ -478,6 +496,7 @@ public class OfficerService
             Details = details,
             FromStatus = from,
             ToStatus = to,
+            IsStudentVisible = studentVisible,
             CreatedOn = DateTime.UtcNow
         });
     }
