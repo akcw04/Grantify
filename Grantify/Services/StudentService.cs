@@ -278,10 +278,18 @@ public class StudentService
     // Task 2: this is the point where the message also goes out by SNS/SES.
     public async Task<int> SyncNotificationsAsync(string userId)
     {
-        // Every officer action on an application belonging to this student.
+        // Every officer action on an application belonging to this student
+        // THAT THE STUDENT IS ALLOWED TO SEE.
+        //
+        // The review log is a full internal record, so most of it is not meant
+        // for the applicant. Without the IsStudentVisible filter, an officer's
+        // private note on a document was sent to the student word for word.
+        // The Officer module owns that flag (see OfficerService.AddLog): real
+        // decisions and "started review" are visible, document notes are not.
         var logs = await _db.ApplicationReviewLogs
             .Include(l => l.Application)
                 .ThenInclude(a => a!.Scholarship)
+            .Where(l => l.IsStudentVisible)
             .Where(l => l.Application != null && l.Application.StudentUserId == userId)
             .OrderBy(l => l.CreatedOn)
             .ToListAsync();

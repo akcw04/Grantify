@@ -44,5 +44,18 @@ public class ApplicationReviewLog
     public ApplicationStatus? FromStatus { get; set; }
     public ApplicationStatus? ToStatus { get; set; }
 
+    // May the STUDENT be shown this entry?
+    //
+    // The history is a full internal record, so most of it is not written for
+    // the applicant. A document note like "suspect forged stamp, check with the
+    // registry" is a working note between officers, not a message to send out.
+    // Only a real decision on the application is meant for the student.
+    //
+    // Defaults to false: a new kind of log entry stays private until somebody
+    // deliberately decides otherwise. Member A's notification feature filters
+    // on this flag, so the Officer module — which knows what is safe to send —
+    // is the one that decides.
+    public bool IsStudentVisible { get; set; }
+
     public DateTime CreatedOn { get; set; }
 }
