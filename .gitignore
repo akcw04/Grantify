@@ -22,6 +22,17 @@ appsettings.Development.json
 *.mdf
 *.ldf
 
+# Documents students upload while testing (transcripts, payslips, IC copies).
+# NEVER commit these:
+#   - they are personal data, and this repo is on GitHub
+#   - they are runtime data, not source code
+#   - the folder is created automatically by StudentService when a file is
+#     uploaded, so nothing breaks by leaving it out
+#   - the file names contain the application id, and everyone's ids differ
+#     after Drop-Database, so committed files would just be orphans
+# In Task 2 these move to Amazon S3 and this folder disappears entirely.
+Grantify/App_Data/uploads/
+
 # NuGet packages (restored automatically from the .csproj on build)
 packages/
 *.nupkg

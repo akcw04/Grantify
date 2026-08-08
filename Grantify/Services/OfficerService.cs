@@ -216,9 +216,15 @@ public class OfficerService
         // Run the automated screening again, live, so the officer sees the same
         // answer the student saw. If the student never filled in their profile
         // we cannot screen them — say so instead of guessing.
+        //
+        // We judge it against the date the student SUBMITTED, not today. An
+        // officer often reviews after the closing date, and judging against
+        // today would mark a perfectly punctual applicant "not eligible"
+        // because of our own delay.
         if (profile is not null && application.Scholarship is not null)
         {
-            detail.Eligibility = _eligibility.Check(profile, application.Scholarship);
+            detail.Eligibility = _eligibility.Check(
+                profile, application.Scholarship, application.SubmittedOn.ToLocalTime());
         }
 
         return detail;
