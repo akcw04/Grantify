@@ -212,3 +212,67 @@
 .table-scroll {
     overflow-x: auto;
 }
+
+/* ---------- Our own confirm dialog ----------
+   Replaces window.confirm, which the browser labels with the site address
+   ("localhost:5199 says") and which cannot be styled. Built by officer.js. */
+.officer-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(33, 37, 41, .5);
+}
+
+.officer-dialog-backdrop[hidden] {
+    display: none;
+}
+
+/* Stop the page behind scrolling while the dialog is open. */
+body.officer-dialog-open {
+    overflow: hidden;
+}
+
+.officer-dialog {
+    width: 100%;
+    max-width: 28rem;
+    background: #fff;
+    border-radius: .5rem;
+    box-shadow: 0 .75rem 2rem rgba(0, 0, 0, .25);
+    padding: 1.25rem;
+}
+
+.officer-dialog-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 .5rem;
+}
+
+.officer-dialog-body {
+    margin: 0 0 .5rem;
+}
+
+.officer-dialog-warning {
+    margin: 0;
+    font-size: .875rem;
+    color: #842029;
+    background: #f8d7da;
+    border: 1px solid #f1aeb5;
+    border-radius: .375rem;
+    padding: .5rem .75rem;
+}
+
+/* Hide the warning line when there is nothing to warn about. */
+.officer-dialog-warning:empty {
+    display: none;
+}
+
+.officer-dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: .5rem;
+    margin-top: 1.25rem;
+}

@@ -1,0 +1,10 @@
+@using Microsoft.AspNetCore.Identity
+@using Grantify
+@using Grantify.Models
+@namespace Grantify.Areas.Identity.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@* SHARED. Without this file the tag helpers are not registered for pages under
+   Areas/Identity/, and asp-page / asp-area are written out as plain attributes:
+   the links render with no href at all and clicking them does nothing.
+   The root Pages/_ViewImports.cshtml does NOT reach into an Area. *@

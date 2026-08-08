@@ -1,0 +1,45 @@
+@page
+@model Grantify.Areas.Identity.Pages.Account.AccessDeniedModel
+@{
+    ViewData["Title"] = "Access denied";
+}
+
+@* SHARED PAGE. Overrides the plain "Access denied" that ships with ASP.NET Core
+   Identity, so a blocked user sees something centred and helpful instead of two
+   lines stuck in the top-left corner.
+
+   Styling uses Bootstrap utility classes only — no change to site.css, and no
+   role css file, because all three roles land here. *@
+
+<div class="d-flex flex-column align-items-center justify-content-center text-center"
+     style="min-height: 60vh;">
+
+    <h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+    <p class="text-muted mb-1" style="max-width: 32rem;">
+        You are signed in, but this page belongs to a different role.
+    </p>
+    <p class="text-muted mb-4" style="max-width: 32rem;">
+        Each part of Grantify is limited to the people who need it — students,
+        scholarship officers and administrators each see only their own area.
+    </p>
+
+    <div class="d-flex flex-wrap gap-2 justify-content-center">
+        @* Send people to their OWN dashboard rather than to a page they
+           cannot open either. *@
+        @if (User.IsInRole("Student"))
+        {
+            <a class="btn btn-primary" asp-area="" asp-page="/Student/Index">Go to my dashboard</a>
+        }
+        else if (User.IsInRole("Officer"))
+        {
+            <a class="btn btn-primary" asp-area="" asp-page="/Officer/Index">Go to my dashboard</a>
+        }
+        else if (User.IsInRole("Admin"))
+        {
+            <a class="btn btn-primary" asp-area="" asp-page="/Admin/Index">Go to my dashboard</a>
+        }
+        <a class="btn btn-outline-secondary" asp-area="" asp-page="/Index">Home</a>
+    </div>
+
+</div>

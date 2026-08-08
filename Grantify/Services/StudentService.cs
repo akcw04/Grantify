@@ -170,7 +170,11 @@ public class StudentService
             ScholarshipId = scholarshipId,
             StudentUserId = userId,
             Status = ApplicationStatus.Submitted,
-            SubmittedOn = DateTime.Now
+            // UTC, not DateTime.Now. Every time-stamp in this project is stored
+            // in UTC and converted for display, so the two modules agree. Storing
+            // local time here made an application submitted on 8 Aug show as
+            // 9 Aug on the officer pages (the +8 offset got applied twice).
+            SubmittedOn = DateTime.UtcNow
         };
 
         _db.ScholarshipApplications.Add(application);
@@ -224,7 +228,7 @@ public class StudentService
             FileName = Path.GetFileName(file.FileName),
             StoragePath = Path.Combine(applicationId.ToString(), storedName),
             Status = DocumentStatus.Pending,
-            UploadedOn = DateTime.Now
+            UploadedOn = DateTime.UtcNow   // UTC everywhere — see SubmittedOn above
         });
 
         await _db.SaveChangesAsync();
