@@ -44,6 +44,11 @@ public static class OfficerDemoSeeder
         var merit = scholarships[0];                                    // high CGPA, no income limit
         var financialAid = scholarships.Count > 1 ? scholarships[1] : merit; // income capped
 
+        // A scholarship whose closing date has already gone by. Without one of
+        // these, the deadline rule in EligibilityService cannot be tested by
+        // hand — every seeded scholarship closes months from now.
+        var closed = await GetOrCreateClosedScholarshipAsync(db);
+
         // ----- Fake students, each one designed to test a different case -----
 
         // Passes both rules comfortably.
@@ -73,7 +78,15 @@ public static class OfficerDemoSeeder
         var incomplete = await CreateDemoUserAsync(userManager,
             "demo.noprofile@grantify.test", "Nurul Huda (no profile)");
 
-        if (aisyah is null || kumar is null || chen is null || daniel is null || incomplete is null)
+        // Applied in good time to a scholarship that has since closed. Proves
+        // the officer still sees "Eligible": the closing date is judged against
+        // the day the student submitted, not the day the officer got round to it.
+        var punctual = await CreateDemoStudentAsync(userManager, db,
+            "demo.farah@grantify.test", "Farah Iskandar",
+            cgpa: 3.90m, income: 2800m, course: "Actuarial Studies");
+
+        if (aisyah is null || kumar is null || chen is null || daniel is null
+            || incomplete is null || punctual is null)
         {
             return; // account creation failed; leave the database untouched
         }
@@ -96,11 +109,45 @@ public static class OfficerDemoSeeder
                 documentsVerified: true),
 
             NewApplication(merit, incomplete, ApplicationStatus.Submitted, daysAgo: 2,
-                documents: Array.Empty<string>())
+                documents: Array.Empty<string>()),
+
+            // Submitted 20 days ago; that scholarship closed 10 days ago. So it
+            // WAS open when she applied. The officer must still see "Eligible".
+            NewApplication(closed, punctual, ApplicationStatus.Submitted, daysAgo: 20,
+                documents: new[] { "farah-transcript.pdf" })
         };
 
         db.ScholarshipApplications.AddRange(applications);
         await db.SaveChangesAsync();
+    }
+
+    // A published scholarship whose closing date has already passed.
+    // Normally an Admin would create this; there is no Admin UI yet, and this
+    // whole file is temporary demo data anyway. Created once, then reused.
+    private static async Task<Scholarship> GetOrCreateClosedScholarshipAsync(AppDbContext db)
+    {
+        const string name = "Legacy Excellence Award (closed)";
+
+        var existing = await db.Scholarships.FirstOrDefaultAsync(s => s.Name == name);
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        var closed = new Scholarship
+        {
+            Name = name,
+            Provider = "Grantify Alumni Trust",
+            Description = "Applications have closed. Kept so the deadline rule can be demonstrated.",
+            MinimumCgpa = 3.00m,
+            MaximumHouseholdIncome = null,
+            Deadline = DateTime.Today.AddDays(-10),
+            IsPublished = true
+        };
+
+        db.Scholarships.Add(closed);
+        await db.SaveChangesAsync();
+        return closed;
     }
 
     // Builds one application together with its uploaded files.
