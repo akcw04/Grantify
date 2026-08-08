@@ -1,0 +1,111 @@
+@page
+@model Grantify.Pages.Student.ProfileModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+@* OWNER: Member A (Student role). #1 - profile.
+   Styling kept close to plain Bootstrap, same approach as the Officer pages. *@
+
+<div class="student-page">
+
+    <h1>My Profile</h1>
+    <p class="text-muted">
+        These details are what the eligibility check compares against each scholarship's rules.
+    </p>
+
+    <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
+
+    @if (!Model.IsComplete)
+    {
+        <div class="alert alert-warning">
+            Your profile is not complete yet. Fill in your CGPA, course and institution
+            so the Scholarships page can tell you what you qualify for.
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-8">
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h2 class="h5">Personal</h2>
+
+                        <div class="mb-3">
+                            <label asp-for="Input.FullName" class="form-label"></label>
+                            <input asp-for="Input.FullName" class="form-control" />
+                            <span asp-validation-for="Input.FullName" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h2 class="h5">Academic</h2>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Input.Course" class="form-label"></label>
+                                <input asp-for="Input.Course" class="form-control" placeholder="BSc (Hons) Computer Science" />
+                                <span asp-validation-for="Input.Course" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Input.Institution" class="form-label"></label>
+                                <input asp-for="Input.Institution" class="form-control" placeholder="Asia Pacific University" />
+                                <span asp-validation-for="Input.Institution" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Input.Cgpa" class="form-label"></label>
+                                <input asp-for="Input.Cgpa" class="form-control" type="number" step="0.01" min="0" max="4" />
+                                <div class="form-text">On a 4.00 scale.</div>
+                                <span asp-validation-for="Input.Cgpa" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h2 class="h5">Household</h2>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Input.HouseholdIncome" class="form-label"></label>
+                                <input asp-for="Input.HouseholdIncome" class="form-control" type="number" step="0.01" min="0" />
+                                <div class="form-text">Used by need-based scholarships.</div>
+                                <span asp-validation-for="Input.HouseholdIncome" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save profile</button>
+                <a asp-page="Scholarships" class="btn btn-outline-secondary">Browse scholarships</a>
+            </form>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="h6">How the check works</h2>
+                    <ol class="small text-muted mb-0">
+                        <li>Each scholarship publishes a minimum CGPA and, sometimes, an income limit.</li>
+                        <li>Your details above are compared against those rules.</li>
+                        <li>You are told whether you qualify, and the reason for anything you do not meet.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/student/student.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

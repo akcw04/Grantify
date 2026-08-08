@@ -1,0 +1,9 @@
+@* OWNER: Member A. Green or red strip shown after an action. *@
+@model (string? Message, bool IsError)
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <div class="alert @(Model.IsError ? "alert-danger" : "alert-success")" role="alert">
+        @Model.Message
+    </div>
+}

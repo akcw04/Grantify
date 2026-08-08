@@ -22,4 +22,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
     // Audit trail of officer actions (added by Member B).
     public DbSet<ApplicationReviewLog> ApplicationReviewLogs => Set<ApplicationReviewLog>();
+
+    // Messages shown to a student when their application changes (added by Member A).
+    public DbSet<Notification> Notifications => Set<Notification>();
 }

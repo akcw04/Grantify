@@ -1,11 +1,43 @@
-/* OWNER: Member A. Styles used ONLY on Student pages.
-   This file loads on top of the shared site.css — only add here,
-   do not repeat or fight the shared theme.
-   How to load it on your page: see the @section Styles block
-   at the bottom of Pages/Student/Index.cshtml. */
+/* OWNER: Member A (Student role).
+   Only the few things Bootstrap does not already give us: the dashboard tiles
+   and a hover state on the scholarship cards. Everything else is plain
+   Bootstrap, so this file stays small and merges cleanly with a shared theme. */
 
-/* Example: student pages get a blue accent under the page title. */
-h1 {
-    border-bottom: 3px solid #0d6efd;
-    padding-bottom: .25rem;
+.student-page .stat-card {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-left: 4px solid #0d6efd;
+    padding: .75rem 1rem;
+    height: 100%;
+}
+
+.student-page .stat-label {
+    font-size: .75rem;
+    text-transform: uppercase;
+    color: #6c757d;
+}
+
+.student-page .stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.student-page .stat-note {
+    font-size: .8rem;
+    color: #6c757d;
+}
+
+/* Makes it obvious which card the mouse is on when browsing the list. */
+.student-page .scholarship-card {
+    transition: border-color .12s;
+}
+
+.student-page .scholarship-card:hover {
+    border-color: #0d6efd;
+}
+
+/* An unread notification is marked down the left edge. */
+.student-page .notification-unread {
+    border-left: 4px solid #0d6efd;
 }

@@ -1,0 +1,134 @@
+@page "{id:int}"
+@model Grantify.Pages.Student.ApplyModel
+@{
+    ViewData["Title"] = "My Application";
+    var app = Model.Application!;
+}
+
+@* OWNER: Member A (Student role). #3 - application detail and document upload. *@
+
+<div class="student-page">
+
+    <h1>Application</h1>
+    <p class="text-muted">@app.Scholarship?.Name</p>
+
+    <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
+
+    <div class="row g-3">
+
+        @* ---------- Summary ---------- *@
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="h6">Details</h2>
+                    <dl class="row small mb-0">
+                        <dt class="col-5">Scholarship</dt>
+                        <dd class="col-7">@app.Scholarship?.Name</dd>
+
+                        <dt class="col-5">Provider</dt>
+                        <dd class="col-7">@app.Scholarship?.Provider</dd>
+
+                        <dt class="col-5">Submitted</dt>
+                        <dd class="col-7">@app.SubmittedOn.ToString("dd MMM yyyy")</dd>
+
+                        <dt class="col-5">Status</dt>
+                        <dd class="col-7"><strong>@app.Status</strong></dd>
+
+                        @if (app.Score is not null)
+                        {
+                            <dt class="col-5">Officer score</dt>
+                            <dd class="col-7">@app.Score / 100</dd>
+                        }
+                    </dl>
+
+                    @if (!string.IsNullOrWhiteSpace(app.OfficerRemarks))
+                    {
+                        <div class="alert @(app.Status == ApplicationStatus.Rejected ? "alert-danger" : "alert-info") mt-3 mb-0">
+                            <strong>Officer remarks:</strong> @app.OfficerRemarks
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* ---------- Documents ---------- *@
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="h6">Supporting documents</h2>
+
+                    @if (app.Documents.Count == 0)
+                    {
+                        <p class="text-muted small">Nothing uploaded yet.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>File</th>
+                                        <th>Uploaded</th>
+                                        <th>Checked</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var doc in app.Documents.OrderBy(d => d.UploadedOn))
+                                    {
+                                        <tr>
+                                            <td>@doc.FileName</td>
+                                            <td class="small">@doc.UploadedOn.ToString("dd MMM yyyy")</td>
+                                            <td>
+                                                @if (doc.Status == DocumentStatus.Verified)
+                                                {
+                                                    <span class="badge bg-success">Verified</span>
+                                                }
+                                                else if (doc.Status == DocumentStatus.Flagged)
+                                                {
+                                                    <span class="badge bg-danger">Flagged</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Pending</span>
+                                                }
+
+                                                @if (!string.IsNullOrWhiteSpace(doc.OfficerNote))
+                                                {
+                                                    <div class="small text-muted">@doc.OfficerNote</div>
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                <a asp-page-handler="Download" asp-route-documentId="@doc.Id"
+                                                   class="btn btn-outline-secondary btn-sm">Open</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+
+                    <hr />
+
+                    <form method="post" asp-page-handler="Upload" enctype="multipart/form-data">
+                        <label asp-for="Upload" class="form-label">Add a document</label>
+                        <div class="input-group">
+                            <input asp-for="Upload" class="form-control" type="file" accept=".pdf,.jpg,.jpeg,.png" />
+                            <button type="submit" class="btn btn-primary">Upload</button>
+                        </div>
+                        <div class="form-text">PDF, JPG or PNG. Maximum 5 MB.</div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a asp-page="Applications" class="btn btn-outline-secondary">Back to my applications</a>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/student/student.css" asp-append-version="true" />
+}
