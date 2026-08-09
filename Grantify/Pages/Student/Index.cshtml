@@ -73,7 +73,7 @@
                                 <li class="d-flex justify-content-between border-bottom py-2">
                                     <div>
                                         <a asp-page="Apply" asp-route-id="@app.Id">@app.Scholarship?.Name</a>
-                                        <div class="small text-muted">@app.SubmittedOn.ToString("dd MMM yyyy")</div>
+                                        <div class="small text-muted">@app.SubmittedOn.ToLocalTime().ToString("dd MMM yyyy")</div>
                                     </div>
                                     <span class="small">@app.Status</span>
                                 </li>

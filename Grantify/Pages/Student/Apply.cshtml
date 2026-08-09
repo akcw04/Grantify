@@ -29,7 +29,7 @@
                         <dd class="col-7">@app.Scholarship?.Provider</dd>
 
                         <dt class="col-5">Submitted</dt>
-                        <dd class="col-7">@app.SubmittedOn.ToString("dd MMM yyyy")</dd>
+                        <dd class="col-7">@app.SubmittedOn.ToLocalTime().ToString("dd MMM yyyy")</dd>
 
                         <dt class="col-5">Status</dt>
                         <dd class="col-7"><strong>@app.Status</strong></dd>
@@ -78,7 +78,7 @@
                                     {
                                         <tr>
                                             <td>@doc.FileName</td>
-                                            <td class="small">@doc.UploadedOn.ToString("dd MMM yyyy")</td>
+                                            <td class="small">@doc.UploadedOn.ToLocalTime().ToString("dd MMM yyyy")</td>
                                             <td>
                                                 @if (doc.Status == DocumentStatus.Verified)
                                                 {

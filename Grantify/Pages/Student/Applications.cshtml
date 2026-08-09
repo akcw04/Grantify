@@ -45,7 +45,7 @@
                                 <strong>@app.Scholarship?.Name</strong>
                                 <div class="small text-muted">@app.Scholarship?.Provider</div>
                             </td>
-                            <td class="small">@app.SubmittedOn.ToString("dd MMM yyyy")</td>
+                            <td class="small">@app.SubmittedOn.ToLocalTime().ToString("dd MMM yyyy")</td>
                             <td class="small">
                                 @verified / @app.Documents.Count verified
                                 @if (flagged > 0)
