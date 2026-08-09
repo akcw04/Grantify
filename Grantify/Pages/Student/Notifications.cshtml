@@ -48,7 +48,7 @@
                                 {
                                     <span class="badge bg-primary me-2">New</span>
                                 }
-                                @note.CreatedOn.ToString("dd MMM yyyy, HH:mm")
+                                @note.CreatedOn.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
                             </span>
                         </div>
 
