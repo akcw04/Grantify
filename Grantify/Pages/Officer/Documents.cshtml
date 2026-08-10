@@ -52,7 +52,12 @@
                     {
                         <tr>
                             <td>
-                                <div class="document-name">@item.FileName</div>
+                                @* Opens in a new tab so the queue stays where it is. *@
+                                <div class="document-name">
+                                    <a asp-page-handler="File"
+                                       asp-route-documentId="@item.DocumentId"
+                                       target="_blank" rel="noopener">@item.FileName</a>
+                                </div>
                                 <div class="cell-sub">
                                     uploaded @item.UploadedOn.ToLocalTime().ToString("dd MMM yyyy")
                                 </div>

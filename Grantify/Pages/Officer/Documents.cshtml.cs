@@ -32,6 +32,28 @@ public class DocumentsModel : OfficerPageModel
         Items = await _officerService.GetDocumentQueueAsync(Status);
     }
 
+    // Opens the uploaded file from the verification queue, so an officer working
+    // through the pile does not have to open each application first.
+    // Same behaviour as the review page: readable types show in the browser.
+    public async Task<IActionResult> OnGetFileAsync(int documentId)
+    {
+        var file = await _officerService.GetDocumentFileAsync(documentId);
+
+        if (file is null)
+        {
+            StatusMessage = "That file is not available. Demo applications have no real uploads behind them.";
+            StatusIsError = true;
+            return RedirectToPage(new { Status });
+        }
+
+        var inline = file.ContentType is "application/pdf" or "text/plain"
+                     || file.ContentType.StartsWith("image/");
+
+        return inline
+            ? PhysicalFile(file.FullPath, file.ContentType)
+            : PhysicalFile(file.FullPath, file.ContentType, file.FileName);
+    }
+
     // Verify or flag one document straight from the list.
     public async Task<IActionResult> OnPostSetStatusAsync(
         int documentId, DocumentStatus documentStatus, string? note)

@@ -172,7 +172,15 @@
                             <div class="document-row">
                                 <div class="d-flex justify-content-between align-items-start gap-2">
                                     <div>
-                                        <div class="document-name">@document.FileName</div>
+                                        @* The file name IS the link — clicking it opens the
+                                           document in a new tab so the officer can read it
+                                           beside the form instead of losing this page. *@
+                                        <div class="document-name">
+                                            <a asp-page-handler="File"
+                                               asp-route-id="@application.Id"
+                                               asp-route-documentId="@document.Id"
+                                               target="_blank" rel="noopener">@document.FileName</a>
+                                        </div>
                                         <div class="cell-sub">
                                             uploaded @document.UploadedOn.ToLocalTime().ToString("dd MMM yyyy")
                                             @if (document.VerifiedByName is not null)
