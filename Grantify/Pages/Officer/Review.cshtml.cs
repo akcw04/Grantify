@@ -68,6 +68,33 @@ public class ReviewModel : OfficerPageModel
         return RedirectToPage(new { id, from = From });
     }
 
+    // Opens the actual uploaded file so the officer can read it before deciding.
+    // PDFs and images render in the browser; anything else downloads.
+    //
+    // Access is already restricted to the Officer role by the folder rule in
+    // Program.cs, so there is no extra check here.
+    public async Task<IActionResult> OnGetFileAsync(int id, int documentId)
+    {
+        var file = await _officerService.GetDocumentFileAsync(documentId);
+
+        if (file is null)
+        {
+            // Most likely a demo record, whose StoragePath points at no real file.
+            StatusMessage = "That file is not available. Demo applications have no real uploads behind them.";
+            StatusIsError = true;
+            return RedirectToPage(new { id, from = From });
+        }
+
+        var inline = file.ContentType is "application/pdf" or "text/plain"
+                     || file.ContentType.StartsWith("image/");
+
+        // Passing a download name forces a save dialog; leaving it out lets the
+        // browser show the file in a tab, which is what an officer actually wants.
+        return inline
+            ? PhysicalFile(file.FullPath, file.ContentType)
+            : PhysicalFile(file.FullPath, file.ContentType, file.FileName);
+    }
+
     // Mark one uploaded file as verified or flagged.
     public async Task<IActionResult> OnPostDocumentAsync(
         int id, int documentId, DocumentStatus documentStatus, string? note)
