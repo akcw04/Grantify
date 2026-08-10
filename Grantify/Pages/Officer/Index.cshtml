@@ -77,6 +77,17 @@
     }
     else
     {
+        @* This is a shortcut, not the full list. Say so plainly — otherwise an
+           officer who cannot find a specific application here thinks it is
+           missing, when it is simply below the cut. *@
+        @if (Model.Dashboard.OpenTotal > Model.NextUp.Count)
+        {
+            <p class="cell-sub">
+                Showing the @Model.NextUp.Count longest-waiting of
+                @Model.Dashboard.OpenTotal still open.
+                <a asp-page="Applications">See all in the queue</a>.
+            </p>
+        }
         <div class="table-scroll">
             <table class="table queue-table">
                 <thead>
