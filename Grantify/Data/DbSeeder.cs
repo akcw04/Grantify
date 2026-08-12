@@ -89,9 +89,42 @@ public static class DbSeeder
         }
 
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-        if (await userManager.FindByEmailAsync(email) is not null)
+
+        // The account may already exist from an earlier start. If so we RESET its
+        // password to whatever the configuration now says, rather than leaving it
+        // alone.
+        //
+        // Why: these three accounts are a deployment setting, not people's
+        // personal logins. Skipping them used to mean that changing
+        // Seed__AdminPassword did nothing at all — the site kept the password
+        // from whenever the account was first created, with no error and no clue
+        // why the new one was refused. Making configuration the source of truth
+        // means a wrong password fixes itself on the next restart.
+        //
+        // The cost is that these accounts cannot keep a password changed inside
+        // the app; it goes back to the configured one when the site restarts.
+        // For bootstrap accounts that is the behaviour we want.
+        var existing = await userManager.FindByEmailAsync(email);
+        if (existing is not null)
         {
-            return; // already created on an earlier start
+            var resetToken = await userManager.GeneratePasswordResetTokenAsync(existing);
+            var reset = await userManager.ResetPasswordAsync(existing, resetToken, password);
+
+            if (!reset.Succeeded)
+            {
+                logger.LogError("Could not update the {Role} account password: {Errors}",
+                    role, string.Join("; ", reset.Errors.Select(e => e.Description)));
+                return;
+            }
+
+            // The role may be missing if the account was made some other way.
+            if (!await userManager.IsInRoleAsync(existing, role))
+            {
+                await userManager.AddToRoleAsync(existing, role);
+            }
+
+            logger.LogInformation("Updated the existing {Role} account from configuration.", role);
+            return;
         }
 
         var user = new ApplicationUser

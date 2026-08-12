@@ -68,7 +68,7 @@
     }
     else
     {
-        <div class="table-scroll">
+        <div class="table-responsive">
             <table class="table queue-table">
                 <thead>
                     <tr>
@@ -110,11 +110,11 @@
                                     <span class="cell-sub">@item.DocumentCount file(s)</span>
                                     @if (item.PendingDocumentCount > 0)
                                     {
-                                        <span class="status-badge status-pending">@item.PendingDocumentCount pending</span>
+                                        <span class="badge bg-secondary">@item.PendingDocumentCount pending</span>
                                     }
                                     @if (item.FlaggedDocumentCount > 0)
                                     {
-                                        <span class="status-badge status-flagged">@item.FlaggedDocumentCount flagged</span>
+                                        <span class="badge bg-danger">@item.FlaggedDocumentCount flagged</span>
                                     }
                                 }
                             </td>

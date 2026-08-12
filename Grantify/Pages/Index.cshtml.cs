@@ -1,5 +1,6 @@
 using Grantify.Models;
 using Grantify.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Grantify.Pages;
@@ -20,8 +21,22 @@ public class IndexModel : PageModel
     // The list the .cshtml file displays.
     public List<Scholarship> Scholarships { get; set; } = new();
 
-    public async Task OnGetAsync()
+    public async Task<IActionResult> OnGetAsync()
     {
+        // Someone who is signed in goes straight to their own area.
+        //
+        // This page is the shop window for VISITORS — a public list of open
+        // scholarships. An officer or an admin landing here sees nothing they
+        // can act on, and having both "Home" and their dashboard in the navbar
+        // just raises the question of which one is the real starting point.
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            if (User.IsInRole("Officer")) return RedirectToPage("/Officer/Index");
+            if (User.IsInRole("Admin")) return RedirectToPage("/Admin/Index");
+            if (User.IsInRole("Student")) return RedirectToPage("/Student/Index");
+        }
+
         Scholarships = await _scholarshipService.GetPublishedAsync();
+        return Page();
     }
 }

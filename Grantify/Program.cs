@@ -51,6 +51,11 @@ builder.Services.AddScoped<EligibilityService>();
 // property Storage__BucketName is set (the deployed site), otherwise a folder on
 // this machine (our laptops). Used by both the Student and Officer modules.
 builder.Services.AddScoped<DocumentStorageService>();
+
+// Sends the award / rejection email through Amazon SNS when the environment
+// property Notifications__TopicArn is set. Without it, nothing is sent and a
+// line goes in the log — so local development needs no AWS setup.
+builder.Services.AddScoped<DecisionNotifier>();
 builder.Services.AddScoped<OfficerService>();   // Member B — Officer role
 builder.Services.AddScoped<StudentService>();   // Member A — Student role
 

@@ -70,7 +70,7 @@
     </div>
 
     @* ---------- Shortcut list ---------- *@
-    <h2>Waiting longest</h2>
+    <h2 class="h5">Waiting longest</h2>
     @if (Model.NextUp.Count == 0)
     {
         <p class="text-muted">Nothing is waiting for review right now.</p>
@@ -88,7 +88,7 @@
                 <a asp-page="Applications">See all in the queue</a>.
             </p>
         }
-        <div class="table-scroll">
+        <div class="table-responsive">
             <table class="table queue-table">
                 <thead>
                     <tr>

@@ -1,21 +1,25 @@
 @model Grantify.Models.ApplicationStatus
 
-@* OWNER: Member B. Shows one application status as a coloured pill.
-   Used on the dashboard, the queue and the review page, so the colour and
-   the wording of a status are decided in ONE place only.
-   Use it with:  <partial name="_ApplicationStatusBadge" model="item.Status" /> *@
+@* OWNER: Member B. Shows one application status as a coloured badge.
+   Used on the dashboard, the queue and the review page, so the colour and the
+   wording of a status are decided in ONE place only.
+   Use it with:  <partial name="_ApplicationStatusBadge" model="item.Status" />
+
+   The colours and wording deliberately MATCH Member A's student pages
+   (Pages/Student/Applications.cshtml). A student seeing a grey "Submitted"
+   badge and an officer seeing a blue "New" pill for the same application makes
+   the system look like two different products. *@
 
 @{
-    // Class name and human wording for each status.
     var (cssClass, label) = Model switch
     {
-        ApplicationStatus.Submitted => ("status-submitted", "New"),
-        ApplicationStatus.UnderReview => ("status-underreview", "Under review"),
-        ApplicationStatus.Shortlisted => ("status-shortlisted", "Shortlisted"),
-        ApplicationStatus.Approved => ("status-approved", "Approved"),
-        ApplicationStatus.Rejected => ("status-rejected", "Rejected"),
-        _ => ("status-pending", Model.ToString())
+        ApplicationStatus.Submitted => ("bg-secondary", "Submitted"),
+        ApplicationStatus.UnderReview => ("bg-warning text-dark", "Under review"),
+        ApplicationStatus.Shortlisted => ("bg-primary", "Shortlisted"),
+        ApplicationStatus.Approved => ("bg-success", "Approved"),
+        ApplicationStatus.Rejected => ("bg-danger", "Rejected"),
+        _ => ("bg-secondary", Model.ToString())
     };
 }
 
-<span class="status-badge @cssClass">@label</span>
+<span class="badge @cssClass">@label</span>
