@@ -46,6 +46,11 @@ builder.Services.AddRazorPages(options =>
 // then any page can ask for it in its constructor.
 builder.Services.AddScoped<ScholarshipService>();
 builder.Services.AddScoped<EligibilityService>();
+
+// Decides where uploaded documents are kept: Amazon S3 when the environment
+// property Storage__BucketName is set (the deployed site), otherwise a folder on
+// this machine (our laptops). Used by both the Student and Officer modules.
+builder.Services.AddScoped<DocumentStorageService>();
 builder.Services.AddScoped<OfficerService>();   // Member B — Officer role
 builder.Services.AddScoped<StudentService>();   // Member A — Student role
 
@@ -61,14 +66,46 @@ var app = builder.Build();
 // site. See DbSeeder for what the deployed site gets instead.
 using (var scope = app.Services.CreateScope())
 {
-    await DbSeeder.SeedAsync(scope.ServiceProvider, app.Environment.IsDevelopment());
-
-    // TEMPORARY (Member B): fake applications so the Officer review queue is not
-    // empty while the Student pages are still being built. Development only.
-    // Delete this block, and OfficerDemoSeeder.cs, once Member A's pages work.
-    if (app.Environment.IsDevelopment())
+    try
     {
-        await OfficerDemoSeeder.SeedAsync(scope.ServiceProvider);
+        await DbSeeder.SeedAsync(scope.ServiceProvider, app.Environment.IsDevelopment());
+
+        // TEMPORARY (Member B): fake applications so the Officer review queue is not
+        // empty while the Student pages are still being built. Development only.
+        // Delete this block, and OfficerDemoSeeder.cs, once Member A's pages work.
+        if (app.Environment.IsDevelopment())
+        {
+            await OfficerDemoSeeder.SeedAsync(scope.ServiceProvider);
+        }
+    }
+    catch (Exception ex)
+    {
+        // The database was unreachable, or the migrations failed.
+        //
+        // On the DEPLOYED site we log it and let the web server start anyway.
+        // Crashing here would be much worse than it sounds: Elastic Beanstalk
+        // reads "the app exited" as a failed deployment and rolls the
+        // configuration back — including the very connection string we were
+        // trying to fix. That leaves you unable to correct the setting,
+        // because correcting it restarts an app that dies. A running site
+        // showing an error page is far easier to diagnose than a dead one.
+        //
+        // On OUR machines we still crash on purpose: if F5 cannot reach
+        // LocalDB, you want to know immediately, not chase a broken page.
+        var logger = scope.ServiceProvider
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger("Startup");
+
+        logger.LogError(ex,
+            "Database setup failed on startup. The site will start, but pages that " +
+            "read data will not work until the database is reachable. Check the " +
+            "ConnectionStrings__DefaultConnection setting and that the database " +
+            "security group allows this server on port 1433.");
+
+        if (app.Environment.IsDevelopment())
+        {
+            throw;
+        }
     }
 }
 

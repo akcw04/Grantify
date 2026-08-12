@@ -28,6 +28,12 @@ publish/
 appsettings.Development.json
 *.pfx
 
+# EC2 key pair private keys (e.g. grantifyAccess.pem). Anyone holding one of
+# these can log in to our server, so they must never reach GitHub. Keep the
+# file outside this folder as well.
+*.pem
+*.ppk
+
 # LocalDB database files (each member has their own DB — rebuilt via Update-Database)
 *.mdf
 *.ldf

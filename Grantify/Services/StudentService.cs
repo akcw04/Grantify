@@ -16,13 +16,13 @@ public class StudentService
 {
     private readonly AppDbContext _db;
     private readonly EligibilityService _eligibility;
-    private readonly IWebHostEnvironment _environment;
+    private readonly DocumentStorageService _storage;
 
-    public StudentService(AppDbContext db, EligibilityService eligibility, IWebHostEnvironment environment)
+    public StudentService(AppDbContext db, EligibilityService eligibility, DocumentStorageService storage)
     {
         _db = db;
         _eligibility = eligibility;
-        _environment = environment;
+        _storage = storage;
     }
 
     // ---------- #1 Profile ----------
@@ -209,24 +209,25 @@ public class StudentService
         if (!AllowedExtensions.Contains(extension))
             return new ApplyResult(false, "Only PDF, JPG and PNG files are accepted.");
 
-        var folder = Path.Combine(_environment.ContentRootPath, "App_Data", "uploads", applicationId.ToString());
-        Directory.CreateDirectory(folder);
-
         // A new name per upload, so two files called "transcript.pdf" cannot
         // overwrite each other.
         var storedName = $"{Guid.NewGuid():N}{extension}";
-        var fullPath = Path.Combine(folder, storedName);
 
-        using (var stream = new FileStream(fullPath, FileMode.Create))
+        // DocumentStorageService decides WHERE this goes: Amazon S3 on the
+        // deployed site, App_Data/uploads on our own machines. Files written to
+        // the Elastic Beanstalk server would be lost on the next deploy, so the
+        // live site must use S3 — but nothing changes when you press F5 locally.
+        string storagePath;
+        await using (var upload = file.OpenReadStream())
         {
-            await file.CopyToAsync(stream);
+            storagePath = await _storage.SaveAsync(applicationId, storedName, upload);
         }
 
         _db.ApplicationDocuments.Add(new ApplicationDocument
         {
             ScholarshipApplicationId = applicationId,
             FileName = Path.GetFileName(file.FileName),
-            StoragePath = Path.Combine(applicationId.ToString(), storedName),
+            StoragePath = storagePath,
             Status = DocumentStatus.Pending,
             UploadedOn = DateTime.UtcNow   // UTC everywhere — see SubmittedOn above
         });
@@ -236,7 +237,9 @@ public class StudentService
     }
 
     // Returns the file only if this student owns the application it belongs to.
-    public async Task<(string FullPath, string FileName)?> GetMyDocumentAsync(string userId, int documentId)
+    // The ownership check is the important part and is unchanged; only WHERE the
+    // file lives has moved (Amazon S3 on the deployed site, disk locally).
+    public async Task<DocumentLocation?> GetMyDocumentAsync(string userId, int documentId)
     {
         var document = await _db.ApplicationDocuments
             .Include(d => d.Application)
@@ -245,10 +248,7 @@ public class StudentService
         if (document?.Application is null) return null;
         if (document.Application.StudentUserId != userId) return null;
 
-        var fullPath = Path.Combine(_environment.ContentRootPath, "App_Data", "uploads", document.StoragePath);
-        if (!File.Exists(fullPath)) return null;
-
-        return (fullPath, document.FileName);
+        return await _storage.GetAsync(document.StoragePath, document.FileName);
     }
 
     // ---------- #4 Track ----------

@@ -85,14 +85,17 @@ public class ReviewModel : OfficerPageModel
             return RedirectToPage(new { id, from = From });
         }
 
-        var inline = file.ContentType is "application/pdf" or "text/plain"
-                     || file.ContentType.StartsWith("image/");
+        // Stored in S3: send the officer to a temporary link. The bucket stays
+        // private, so this link is the only way in and it expires shortly.
+        if (file.IsRemote)
+        {
+            return Redirect(file.Url);
+        }
 
-        // Passing a download name forces a save dialog; leaving it out lets the
-        // browser show the file in a tab, which is what an officer actually wants.
-        return inline
-            ? PhysicalFile(file.FullPath, file.ContentType)
-            : PhysicalFile(file.FullPath, file.ContentType, file.FileName);
+        // Stored on this machine (local development): serve the file ourselves.
+        // No download name means the browser shows it in a tab, which is what an
+        // officer actually wants when checking a transcript.
+        return PhysicalFile(file.Url, file.ContentType);
     }
 
     // Mark one uploaded file as verified or flagged.
