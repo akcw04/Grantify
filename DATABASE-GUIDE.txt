@@ -82,12 +82,41 @@ Because the recipes are in Git, every member's app can replay them
 and end up with an identical database. The data rows are not shared,
 so DbSeeder gives everyone the same sample data to test with.
 
-WHEN WE MOVE TO THE CLOUD (Week 9 - do not do this yet)
+WHEN WE MOVE TO THE CLOUD (integration week)
 ---------------------------------------------------------------------
 1. Create the RDS database in AWS Learner Lab.
-2. In appsettings, change the connection string to the RDS address.
-3. Run the app once - it creates the tables on RDS by itself.
-4. Deploy to Elastic Beanstalk.
+2. Do NOT put the RDS connection string in appsettings.json - it would be
+   committed to GitHub. Set it in Elastic Beanstalk instead, under
+   Configuration > Software > Environment properties:
+
+       ConnectionStrings__DefaultConnection = Server=<rds-endpoint>;
+           Database=GrantifyDb;User Id=<user>;Password=<password>;
+           Encrypt=True;TrustServerCertificate=True;
+
+   The double underscore is how .NET reads a nested setting from an
+   environment variable. It overrides appsettings.json automatically,
+   so NO code change is needed.
+
+3. Also set these two, or the deployed site will have no way to log in:
+
+       Seed__AdminEmail    = <your email>
+       Seed__AdminPassword = <a strong password you choose>
+
+   The app creates that one administrator on first start, then that admin
+   creates the other accounts. If you leave them out, the site still runs
+   but has zero user accounts (a warning appears in the EB logs).
+
+4. Deploy to Elastic Beanstalk. On first start the app runs the migrations
+   itself, so the tables appear on RDS with no manual step.
+
+IMPORTANT - the test accounts are DEVELOPMENT ONLY
+---------------------------------------------------------------------
+student@ / officer@ / admin@grantify.test and the sample scholarships are
+created only when the app runs in Development (your machine). They are NOT
+created on the deployed site, because their password is written in
+README.md - seeding them on a public web address would give anyone who
+reads our repo an administrator login.
+
 Remember: RDS keeps costing money even when the lab session is off.
 Only create it in integration week, and stop it when not needed.
 =====================================================================

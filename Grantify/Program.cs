@@ -52,11 +52,16 @@ builder.Services.AddScoped<StudentService>();   // Member A — Student role
 var app = builder.Build();
 
 // ---------- 5. Prepare the database on startup ----------
-// Applies any new migrations and fills in roles, test accounts and sample data.
-// This is why "F5 after git pull" is usually all you need.
+// Applies any new migrations, then fills in the starting data.
+// This is why "F5 after git pull" is usually all you need, and why the tables
+// build themselves on RDS the first time we deploy.
+//
+// The test accounts and sample scholarships are DEVELOPMENT ONLY — their
+// passwords are printed in README.md, so they must never exist on the deployed
+// site. See DbSeeder for what the deployed site gets instead.
 using (var scope = app.Services.CreateScope())
 {
-    await DbSeeder.SeedAsync(scope.ServiceProvider);
+    await DbSeeder.SeedAsync(scope.ServiceProvider, app.Environment.IsDevelopment());
 
     // TEMPORARY (Member B): fake applications so the Officer review queue is not
     // empty while the Student pages are still being built. Development only.
