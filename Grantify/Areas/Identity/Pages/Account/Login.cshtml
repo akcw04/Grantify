@@ -1,0 +1,63 @@
+@page
+@model Grantify.Areas.Identity.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Sign in";
+}
+
+@* SHARED PAGE. Replaces the sign-in page that ships with Identity so that it
+   matches the rest of the site and offers nothing that does not work.
+   The built-in page linked to "Forgot your password?" and "Resend email
+   confirmation", which both need an email service we do not have. *@
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-5">
+
+        <h1 class="h3 text-center mb-1">Sign in to Grantify</h1>
+        <p class="text-muted text-center mb-4">
+            Scholarship applications, review and administration.
+        </p>
+
+        <div class="card">
+            <div class="card-body p-4">
+                <form id="account" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"
+                         style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Email" class="form-label"></label>
+                        <input asp-for="Input.Email" class="form-control" autocomplete="username"
+                               aria-required="true" placeholder="you@example.com" />
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Input.Password" class="form-label"></label>
+                        <input asp-for="Input.Password" class="form-control" autocomplete="current-password"
+                               aria-required="true" placeholder="Password" />
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" asp-for="Input.RememberMe" />
+                        <label class="form-check-label" asp-for="Input.RememberMe"></label>
+                    </div>
+
+                    <button id="login-submit" type="submit" class="btn btn-primary w-100">Sign in</button>
+                </form>
+            </div>
+        </div>
+
+        @* Students create their own account. Officer and administrator accounts
+           are set up by an administrator, which is why there is no other link
+           here — anything else would be a dead end. *@
+        <p class="text-center text-muted mt-3 mb-0">
+            New student?
+            <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Create an account</a>
+        </p>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

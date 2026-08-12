@@ -17,12 +17,18 @@ public class OfficerService
     private readonly AppDbContext _db;
     private readonly EligibilityService _eligibility;
     private readonly DocumentStorageService _storage;
+    private readonly DecisionNotifier _notifier;
 
-    public OfficerService(AppDbContext db, EligibilityService eligibility, DocumentStorageService storage)
+    public OfficerService(
+        AppDbContext db,
+        EligibilityService eligibility,
+        DocumentStorageService storage,
+        DecisionNotifier notifier)
     {
         _db = db;
         _eligibility = eligibility;
         _storage = storage;
+        _notifier = notifier;
     }
 
     // ------------------------------------------------------------------
@@ -287,8 +293,13 @@ public class OfficerService
         string officerUserId,
         string officerName)
     {
+        // Student and Scholarship are loaded because the notification sent at the
+        // end of this method needs the applicant's name, their email address and
+        // the scholarship title.
         var application = await _db.ScholarshipApplications
             .Include(a => a.Documents)
+            .Include(a => a.Student)
+            .Include(a => a.Scholarship)
             .FirstOrDefaultAsync(a => a.Id == applicationId);
 
         if (application is null)
@@ -374,8 +385,26 @@ public class OfficerService
 
         await _db.SaveChangesAsync();
 
-        // TASK 2 HOOK: this is the exact point where an approval or rejection
-        // should publish an SNS/SES notification to the student.
+        // Tell the student, by email, that a decision has been made.
+        //
+        // Deliberately AFTER SaveChangesAsync: the decision is already safely
+        // stored, so a problem with the notification service cannot undo it.
+        // DecisionNotifier never throws for the same reason — an officer's
+        // approval must not fail because a mail service was briefly unavailable.
+        //
+        // Only real decisions go out. Re-saving notes without changing the
+        // status is not news, and is exactly the sort of thing that trains
+        // people to ignore notifications.
+        if (from != newStatus)
+        {
+            await _notifier.PublishDecisionAsync(
+                application.Student?.FullName ?? "Applicant",
+                application.Student?.Email ?? string.Empty,
+                application.Scholarship?.Name ?? "your scholarship",
+                newStatus,
+                effectiveRemarks);
+        }
+
         return ServiceResult.Ok(from == newStatus
             ? "Review saved."
             : $"Application moved to {newStatus}.");

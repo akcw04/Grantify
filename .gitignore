@@ -34,6 +34,12 @@ appsettings.Development.json
 *.pem
 *.ppk
 
+# Environment files uploaded to Elastic Beanstalk. These hold the real database
+# password and the seeded account passwords in plain text, so they must never be
+# committed. Keep them outside this folder too.
+*.env
+.env
+
 # LocalDB database files (each member has their own DB — rebuilt via Update-Database)
 *.mdf
 *.ldf
