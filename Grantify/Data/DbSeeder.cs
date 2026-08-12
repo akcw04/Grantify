@@ -10,17 +10,91 @@ namespace Grantify.Data;
 // It only adds things that are missing — it never doubles the data.
 public static class DbSeeder
 {
-    public static async Task SeedAsync(IServiceProvider services)
+    // isDevelopment decides how much gets seeded.
+    //
+    // On our own machines we want the three test accounts and the sample
+    // scholarships, so the app is usable the moment you press F5.
+    //
+    // On the DEPLOYED site we must NOT create them. The passwords are written in
+    // README.md, so seeding admin@grantify.test on a public address would hand
+    // anyone who reads the repo a full administrator login. In that case we only
+    // create the roles, plus one administrator whose details come from
+    // configuration (an Elastic Beanstalk environment property), and nothing at all
+    // if those are not supplied.
+    public static async Task SeedAsync(IServiceProvider services, bool isDevelopment)
     {
         var db = services.GetRequiredService<AppDbContext>();
 
         // First, bring the database up to date with the latest migrations.
-        // This means teammates do not need to run Update-Database by hand.
+        // This means teammates do not need to run Update-Database by hand,
+        // and the tables are created on RDS the first time we deploy.
         await db.Database.MigrateAsync();
 
+        // Roles are part of how the app works, not test data — always needed.
         await CreateRolesAsync(services);
-        await CreateTestAccountsAsync(services, db);
-        await CreateSampleScholarshipsAsync(db);
+
+        if (isDevelopment)
+        {
+            await CreateTestAccountsAsync(services, db);
+            await CreateSampleScholarshipsAsync(db);
+        }
+        else
+        {
+            await CreateConfiguredAdminAsync(services);
+        }
+    }
+
+    // The deployed site needs one administrator to start with, otherwise nobody
+    // can log in and create scholarships. The details come from configuration so
+    // no password is ever written in the source code:
+    //
+    //   Seed__AdminEmail     = you@example.com
+    //   Seed__AdminPassword  = <a strong password you choose>
+    //
+    // In Elastic Beanstalk these are set as environment properties. If either is
+    // missing we create nobody and say so in the log — better an app with no
+    // administrator than one with a password that is public on GitHub.
+    private static async Task CreateConfiguredAdminAsync(IServiceProvider services)
+    {
+        var config = services.GetRequiredService<IConfiguration>();
+        var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("DbSeeder");
+
+        var email = config["Seed:AdminEmail"];
+        var password = config["Seed:AdminPassword"];
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            logger.LogWarning(
+                "No administrator was seeded. Set Seed__AdminEmail and Seed__AdminPassword " +
+                "as environment properties to create the first administrator account.");
+            return;
+        }
+
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        if (await userManager.FindByEmailAsync(email) is not null)
+        {
+            return; // already created on an earlier start
+        }
+
+        var admin = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            FullName = "Administrator",
+            EmailConfirmed = true
+        };
+
+        var result = await userManager.CreateAsync(admin, password);
+        if (!result.Succeeded)
+        {
+            // Never log the password. The reasons say things like "too short".
+            logger.LogError("Could not create the administrator account: {Errors}",
+                string.Join("; ", result.Errors.Select(e => e.Description)));
+            return;
+        }
+
+        await userManager.AddToRoleAsync(admin, "Admin");
+        logger.LogInformation("Created the first administrator account from configuration.");
     }
 
     // The three roles of our system. A user's role decides which pages they can open.
