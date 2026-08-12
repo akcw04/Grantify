@@ -8,6 +8,28 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Procfile tells Elastic Beanstalk (Linux) how to start the app.
+         It says:  web: ./Grantify
+         i.e. run our own executable, NOT "dotnet Grantify.dll".
+
+         Why: the Beanstalk platform only has .NET 8 installed, and this app
+         targets .NET 10, so "dotnet Grantify.dll" fails with
+         "You must install or update .NET to run this application".
+         We publish SELF-CONTAINED instead — the app ships its own copy of
+         .NET 10 — and a self-contained app is launched by running it directly.
+
+         Publish it with the self contained option for linux-x64; the exact
+         command is in the team deployment guide.
+
+         We also supply this file because the AWS Toolkit generated one with an
+         empty assembly name, so the server tried to run "./.dll".
+         Keep the line endings as LF; a Windows CRLF turns the command into
+         "./Grantify\r", which fails with a confusing error. -->
+    <Content Include="Procfile" CopyToPublishDirectory="Always" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" Version="4.0.102.1" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.10" />

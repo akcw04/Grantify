@@ -46,12 +46,10 @@ public class DocumentsModel : OfficerPageModel
             return RedirectToPage(new { Status });
         }
 
-        var inline = file.ContentType is "application/pdf" or "text/plain"
-                     || file.ContentType.StartsWith("image/");
-
-        return inline
-            ? PhysicalFile(file.FullPath, file.ContentType)
-            : PhysicalFile(file.FullPath, file.ContentType, file.FileName);
+        // S3 gives a short-lived link; locally we serve the file ourselves.
+        return file.IsRemote
+            ? Redirect(file.Url)
+            : PhysicalFile(file.Url, file.ContentType);
     }
 
     // Verify or flag one document straight from the list.

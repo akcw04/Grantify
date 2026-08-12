@@ -53,6 +53,10 @@ public class ApplyModel : StudentPageModel
         var file = await _students.GetMyDocumentAsync(CurrentUserId, documentId);
         if (file is null) return NotFound();
 
-        return PhysicalFile(file.Value.FullPath, "application/octet-stream", file.Value.FileName);
+        // On the deployed site the file lives in Amazon S3, so we hand back a
+        // short-lived private link. Locally it is still a file on this machine.
+        return file.IsRemote
+            ? Redirect(file.Url)
+            : PhysicalFile(file.Url, "application/octet-stream", file.FileName);
     }
 }

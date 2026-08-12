@@ -16,13 +16,13 @@ public class OfficerService
 {
     private readonly AppDbContext _db;
     private readonly EligibilityService _eligibility;
-    private readonly IWebHostEnvironment _environment;
+    private readonly DocumentStorageService _storage;
 
-    public OfficerService(AppDbContext db, EligibilityService eligibility, IWebHostEnvironment environment)
+    public OfficerService(AppDbContext db, EligibilityService eligibility, DocumentStorageService storage)
     {
         _db = db;
         _eligibility = eligibility;
-        _environment = environment;
+        _storage = storage;
     }
 
     // ------------------------------------------------------------------
@@ -444,7 +444,7 @@ public class OfficerService
     //
     // Task 2: instead of a path on this server, this reads the object from
     // Amazon S3 using StoragePath as the key.
-    public async Task<DocumentFile?> GetDocumentFileAsync(int documentId)
+    public async Task<DocumentLocation?> GetDocumentFileAsync(int documentId)
     {
         var document = await _db.ApplicationDocuments
             .FirstOrDefaultAsync(d => d.Id == documentId);
@@ -454,41 +454,10 @@ public class OfficerService
             return null;
         }
 
-        var uploadsRoot = Path.Combine(_environment.ContentRootPath, "App_Data", "uploads");
-        var fullPath = Path.GetFullPath(Path.Combine(uploadsRoot, document.StoragePath));
-
-        // Safety net: never serve a file from outside the uploads folder, even if
-        // StoragePath in the database were ever tampered with to contain "..".
-        // The value is ours today, but a file-serving method is exactly the place
-        // where you check rather than assume.
-        var rootWithSeparator = Path.GetFullPath(uploadsRoot) + Path.DirectorySeparatorChar;
-        if (!fullPath.StartsWith(rootWithSeparator, StringComparison.OrdinalIgnoreCase))
-        {
-            return null;
-        }
-
-        if (!File.Exists(fullPath))
-        {
-            return null;
-        }
-
-        return new DocumentFile(fullPath, document.FileName, GuessContentType(document.FileName));
-    }
-
-    // Enough types for what students actually upload. Anything else is sent as
-    // a plain download rather than guessed at.
-    private static string GuessContentType(string fileName)
-    {
-        return Path.GetExtension(fileName).ToLowerInvariant() switch
-        {
-            ".pdf" => "application/pdf",
-            ".png" => "image/png",
-            ".jpg" or ".jpeg" => "image/jpeg",
-            ".gif" => "image/gif",
-            ".webp" => "image/webp",
-            ".txt" => "text/plain",
-            _ => "application/octet-stream"
-        };
+        // DocumentStorageService decides whether that means a file on this
+        // machine or a temporary link to Amazon S3. The officer page handles
+        // both. It also does the "never escape the uploads folder" check.
+        return await _storage.GetAsync(document.StoragePath, document.FileName);
     }
 
     // Every document across the whole system that still needs checking.
@@ -619,11 +588,6 @@ public class QueueItem
     public int FlaggedDocumentCount { get; set; }
     public bool IsOverdue { get; set; }
 }
-
-// A real file on disk, ready to be sent to the browser.
-// ContentType decides whether the officer sees it in the page (pdf, images) or
-// gets a download (anything else).
-public record DocumentFile(string FullPath, string FileName, string ContentType);
 
 // One row of the document verification table.
 public class DocumentQueueItem

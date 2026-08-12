@@ -1,0 +1,19 @@
+{
+  "region": "us-east-1",
+  "configuration": "Debug",
+  "framework": "net10.0",
+  "self-contained": false,
+  "application": "Grantify",
+  "environment": "grantify-env",
+  "enable-xray": false,
+  "enhanced-health-type": "basic",
+  "additional-options": "",
+  "solution-stack": "64bit Amazon Linux 2 v2.16.3 running .NET Core",
+  "environment-type": "SingleInstance",
+  "cname": "grantify-env",
+  "instance-type": "t3a.micro",
+  "key-pair": "grantifyAccess",
+  "instance-profile": "LabInstanceProfile",
+  "service-role": "LabRole",
+  "proxy-server": "nginx"
+}

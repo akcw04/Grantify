@@ -40,33 +40,51 @@ public static class DbSeeder
         }
         else
         {
-            await CreateConfiguredAdminAsync(services);
+            await CreateConfiguredAccountsAsync(services);
         }
     }
 
-    // The deployed site needs one administrator to start with, otherwise nobody
-    // can log in and create scholarships. The details come from configuration so
-    // no password is ever written in the source code:
+    // Accounts for the DEPLOYED site, taken from configuration so no password is
+    // ever written in the source code. In Elastic Beanstalk these are set as
+    // environment properties:
     //
-    //   Seed__AdminEmail     = you@example.com
-    //   Seed__AdminPassword  = <a strong password you choose>
+    //   Seed__AdminEmail    / Seed__AdminPassword      (required)
+    //   Seed__OfficerEmail  / Seed__OfficerPassword    (optional)
+    //   Seed__StudentEmail  / Seed__StudentPassword    (optional)
     //
-    // In Elastic Beanstalk these are set as environment properties. If either is
-    // missing we create nobody and say so in the log — better an app with no
-    // administrator than one with a password that is public on GitHub.
-    private static async Task CreateConfiguredAdminAsync(IServiceProvider services)
+    // Why the officer and student ones exist: a person who registers on the site
+    // gets no role, and the page that would give them one is the Admin user
+    // management screen. Until that exists, there would be no way for the team to
+    // demonstrate the Officer and Student features on the deployed site. These
+    // three logins bootstrap the demonstration.
+    //
+    // Anything left unset is simply skipped, and a note appears in the log.
+    private static async Task CreateConfiguredAccountsAsync(IServiceProvider services)
     {
         var config = services.GetRequiredService<IConfiguration>();
         var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("DbSeeder");
 
-        var email = config["Seed:AdminEmail"];
-        var password = config["Seed:AdminPassword"];
+        await CreateConfiguredUserAsync(services, config, logger, "Admin", "Administrator");
+        await CreateConfiguredUserAsync(services, config, logger, "Officer", "Scholarship Officer");
+        await CreateConfiguredUserAsync(services, config, logger, "Student", "Student");
+    }
+
+    // Creates one account for one role, if its two settings are present.
+    private static async Task CreateConfiguredUserAsync(
+        IServiceProvider services,
+        IConfiguration config,
+        ILogger logger,
+        string role,
+        string fullName)
+    {
+        var email = config[$"Seed:{role}Email"];
+        var password = config[$"Seed:{role}Password"];
 
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
         {
             logger.LogWarning(
-                "No administrator was seeded. Set Seed__AdminEmail and Seed__AdminPassword " +
-                "as environment properties to create the first administrator account.");
+                "No {Role} account was seeded. Set Seed__{Role}Email and Seed__{Role}Password " +
+                "as environment properties if you need one.", role, role, role);
             return;
         }
 
@@ -76,25 +94,26 @@ public static class DbSeeder
             return; // already created on an earlier start
         }
 
-        var admin = new ApplicationUser
+        var user = new ApplicationUser
         {
             UserName = email,
             Email = email,
-            FullName = "Administrator",
+            FullName = fullName,
             EmailConfirmed = true
         };
 
-        var result = await userManager.CreateAsync(admin, password);
+        var result = await userManager.CreateAsync(user, password);
         if (!result.Succeeded)
         {
-            // Never log the password. The reasons say things like "too short".
-            logger.LogError("Could not create the administrator account: {Errors}",
-                string.Join("; ", result.Errors.Select(e => e.Description)));
+            // Never log the password. The reasons say things like "too short" or
+            // "must have an uppercase letter".
+            logger.LogError("Could not create the {Role} account: {Errors}",
+                role, string.Join("; ", result.Errors.Select(e => e.Description)));
             return;
         }
 
-        await userManager.AddToRoleAsync(admin, "Admin");
-        logger.LogInformation("Created the first administrator account from configuration.");
+        await userManager.AddToRoleAsync(user, role);
+        logger.LogInformation("Created the {Role} account from configuration.", role);
     }
 
     // The three roles of our system. A user's role decides which pages they can open.

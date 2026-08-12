@@ -1,0 +1,140 @@
+=====================================================================
+ GRANTIFY - CONFIGURATION GUIDE
+ Where every setting lives, and how to point the app at YOUR OWN AWS.
+=====================================================================
+
+THE ONE RULE
+---------------------------------------------------------------------
+No password, server address or bucket name is ever written in the
+source code. Everything comes from configuration, so the same code
+runs on your laptop and on AWS without editing a single line.
+
+That is also why nothing personal is in this repository - and why it
+must stay that way. Never paste a real connection string, password or
+endpoint into appsettings.json.
+
+
+HOW THE APP DECIDES WHAT TO USE
+---------------------------------------------------------------------
+.NET reads settings in this order; later ones win:
+
+  1. appsettings.json                 (in the repo - safe defaults only)
+  2. appsettings.Development.json     (your machine - Git ignores it)
+  3. Environment variables            (AWS - Elastic Beanstalk sets these)
+
+A nested setting uses a DOUBLE UNDERSCORE as an environment variable:
+
+  Setting in appsettings          Environment variable
+  ------------------------------  ---------------------------------
+  ConnectionStrings:DefaultConnection
+                                  ConnectionStrings__DefaultConnection
+  Storage:BucketName              Storage__BucketName
+  Seed:AdminEmail                 Seed__AdminEmail
+
+
+DEFAULT BEHAVIOUR: PURE LOCAL (nothing to set up)
+---------------------------------------------------------------------
+Clone the repo, press F5. You get:
+
+  Database   LocalDB on your machine (appsettings.json)
+  Documents  saved to Grantify/App_Data/uploads/
+  Accounts   student@ / officer@ / admin@grantify.test, Grantify@123
+  Demo data  sample scholarships and applications
+
+You do NOT need an AWS account, credentials, or a bucket to develop.
+If you change nothing, nothing about your workflow changes.
+
+
+EVERY SETTING, AND WHAT HAPPENS IF YOU LEAVE IT OUT
+---------------------------------------------------------------------
+ConnectionStrings__DefaultConnection
+    Which database to use.
+    Not set -> LocalDB on your machine.
+    Set     -> that database (e.g. Amazon RDS).
+
+Storage__BucketName
+    Where uploaded documents go.
+    Not set -> Grantify/App_Data/uploads/ on this machine.
+    Set     -> that Amazon S3 bucket, with short-lived private links.
+
+ASPNETCORE_ENVIRONMENT
+    Development -> test accounts + sample data are created.
+    Production  -> they are NOT (their password is public in README.md).
+
+Seed__AdminEmail / Seed__AdminPassword
+Seed__OfficerEmail / Seed__OfficerPassword
+Seed__StudentEmail / Seed__StudentPassword
+    Only used when ASPNETCORE_ENVIRONMENT is Production.
+    Each pair creates one login with that role, so the team can
+    demonstrate all three roles on the deployed site.
+    Missing pairs are skipped, with a note in the log.
+    Passwords must have upper, lower, a digit and a symbol.
+
+
+TO USE YOUR OWN AWS ACCOUNT
+---------------------------------------------------------------------
+Each of us has a SEPARATE Learner Lab account, so you cannot share
+another member's database or bucket - resources only allow access from
+inside their own account. If you want your own cloud setup, make your
+own of each.
+
+1. Create your RDS instance and your S3 bucket (see
+   docs/09-deployment-guide.md for the exact options).
+
+2. In YOUR Elastic Beanstalk environment:
+   Configuration > Software > Environment properties, add:
+
+     ConnectionStrings__DefaultConnection = Server=<your-rds-endpoint>,1433;
+         Database=GrantifyDb;User Id=<your-user>;Password=<your-password>;
+         Encrypt=True;TrustServerCertificate=True;
+     Storage__BucketName    = <your-bucket-name>
+     ASPNETCORE_ENVIRONMENT = Production
+     Seed__AdminEmail       = <your email>
+     Seed__AdminPassword    = <a strong password>
+     Seed__OfficerEmail     = <an email>
+     Seed__OfficerPassword  = <a strong password>
+     Seed__StudentEmail     = <an email>
+     Seed__StudentPassword  = <a strong password>
+
+3. Nothing else. No code change, no rebuild for the settings alone.
+
+
+TO TEST CLOUD SETTINGS ON YOUR OWN MACHINE (optional)
+---------------------------------------------------------------------
+Put them in appsettings.Development.json, which Git ignores:
+
+  {
+    "ConnectionStrings": {
+      "DefaultConnection": "Server=<your-rds-endpoint>,1433;Database=GrantifyDb;User Id=...;Password=...;Encrypt=True;TrustServerCertificate=True;"
+    },
+    "Storage": { "BucketName": "<your-bucket-name>" }
+  }
+
+For S3 to work from your laptop you also need AWS credentials in
+%USERPROFILE%\.aws\credentials, refreshed from the Learner Lab each
+session. Delete these settings when you are done, so you go back to
+plain local development.
+
+
+TO GO BACK TO LOCAL ONLY
+---------------------------------------------------------------------
+Delete appsettings.Development.json (or empty it). The app falls back
+to LocalDB and the local uploads folder immediately. Nothing else to
+undo.
+
+
+IF SOMETHING IS NOT WORKING
+---------------------------------------------------------------------
+"Database setup failed on startup" in the log
+    The connection string is wrong, or the database security group
+    does not allow the web server on port 1433. The site still runs so
+    you can read the error.
+
+Uploads fail with Access Denied on the deployed site
+    The Beanstalk environment needs the LabInstanceProfile role, which
+    is what lets it reach S3 in your own account.
+
+No accounts exist on the deployed site
+    The Seed__ properties are missing, or the password was rejected.
+    Look for "Could not create the ... account" in the log.
+=====================================================================
