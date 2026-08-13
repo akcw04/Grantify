@@ -1,29 +1,6 @@
 @page
 @model Grantify.Pages.Admin.IndexModel
-@{
-    ViewData["Title"] = "Admin Dashboard";
-}
 
-@* OWNER: Member C (Admin role). Build all admin pages inside Pages/Admin/. *@
-
-<h1>Administrator Dashboard</h1>
-<p class="lead">Welcome, this area is only visible to users with the <strong>Admin</strong> role.</p>
-
-<div class="alert alert-info">
-    <strong>To build (Member C):</strong>
-    <ul class="mb-0">
-        <li>Create, edit and publish scholarship listings (with eligibility criteria)</li>
-        <li>Manage user accounts and roles</li>
-        <li>Reports and analytics dashboard</li>
-        <li>Manage master data (categories, institutions, intakes)</li>
-    </ul>
-</div>
-
-@* These two blocks load the Admin-only css and js on this page.
-   Copy them onto every new Admin page you create. *@
-@section Styles {
-    <link rel="stylesheet" href="~/css/admin/admin.css" asp-append-version="true" />
-}
-@section Scripts {
-    <script src="~/js/admin/admin.js" asp-append-version="true"></script>
-}
+@* OWNER: Member C (Admin role). This page never renders — OnGet redirects to
+   the Analytics dashboard, which is the administrator's real home. See
+   Index.cshtml.cs. *@

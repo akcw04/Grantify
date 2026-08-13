@@ -2,30 +2,43 @@
 @model Grantify.Pages.Admin.IntakePeriods.DetailsModel
 @{
     ViewData["Title"] = "Intake Period Details";
+    var period = Model.IntakePeriod!;
 }
 
-<h1>Intake Period Details</h1>
+@* OWNER: Member C (Admin role). Master data - intake periods. *@
 
-@if (Model.IntakePeriod is null)
-{
-    <div class="alert alert-warning">This intake period no longer exists.</div>
-}
-else
-{
-    <dl class="row">
-        <dt class="col-sm-2">Period Name</dt>
-        <dd class="col-sm-10">@Model.IntakePeriod.PeriodName</dd>
+<div class="admin-page">
 
-        <dt class="col-sm-2">Start Date</dt>
-        <dd class="col-sm-10">@Model.IntakePeriod.StartDate.ToString("d")</dd>
+    <div class="page-header admin-toolbar d-flex flex-wrap justify-content-between align-items-center">
+        <div>
+            <h1>Intake period details</h1>
+            <p class="page-subtitle">@period.PeriodName</p>
+        </div>
+        <a asp-page="Edit" asp-route-id="@period.Id" class="btn btn-primary">
+            <partial name="_ActionIcon" model="@("edit")" />
+            Edit
+        </a>
+    </div>
 
-        <dt class="col-sm-2">End Date</dt>
-        <dd class="col-sm-10">@Model.IntakePeriod.EndDate.ToString("d")</dd>
-    </dl>
+    <div class="card">
+        <div class="card-body p-4">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Period name</dt>
+                <dd class="col-sm-9">@period.PeriodName</dd>
 
-    <a asp-page="Edit" asp-route-id="@Model.IntakePeriod.Id" class="btn btn-primary">Edit</a>
-}
-<a asp-page="Index" class="btn btn-outline-secondary">Back to list</a>
+                <dt class="col-sm-3">Start date</dt>
+                <dd class="col-sm-9">@period.StartDate.ToString("dd MMM yyyy")</dd>
+
+                <dt class="col-sm-3">End date</dt>
+                <dd class="col-sm-9">@period.EndDate.ToString("dd MMM yyyy")</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a asp-page="Index" class="btn btn-outline-secondary">Back to list</a>
+    </div>
+</div>
 
 @section Styles {
     <link rel="stylesheet" href="~/css/admin/admin.css" asp-append-version="true" />

@@ -18,6 +18,14 @@ public class DetailsModel : AdminPageModel
     public async Task<IActionResult> OnGetAsync(int id)
     {
         Institution = await _institutions.GetByIdAsync(id);
+
+        // A link to a record that has since been deleted is a "not found", not a
+        // page with empty boxes on it.
+        if (Institution is null)
+        {
+            return NotFound();
+        }
+
         return Page();
     }
 }

@@ -4,6 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Grantify.Pages.Admin.ScholarshipCategories;
 
+// OWNER: Member C (Admin role). Master data - scholarship categories.
+//
+// Deleting is refused while any scholarship still points at this row. The check
+// runs BOTH when the page is drawn (so the button is disabled and the reason is
+// on screen) and again on the POST, because a disabled button is a courtesy,
+// not a rule — another administrator could link a scholarship to it in between.
 public class DeleteModel : AdminPageModel
 {
     private readonly ScholarshipCategoryService _categories;
@@ -14,41 +20,48 @@ public class DeleteModel : AdminPageModel
     }
 
     [BindProperty]
-    public ScholarshipCategory? Category { get; set; }
+    public int Id { get; set; }
 
-    public bool InUse { get; set; }
+    public ScholarshipCategory? Category { get; private set; }
+
+    // True when a scholarship still links to this category.
+    public bool InUse { get; private set; }
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
         Category = await _categories.GetByIdAsync(id);
-        if (Category is not null)
+        if (Category is null)
         {
-            InUse = await _categories.IsInUseAsync(id);
+            return NotFound();
         }
 
+        Id = Category.Id;
+        InUse = await _categories.IsInUseAsync(id);
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
+        Category = await _categories.GetByIdAsync(Id);
         if (Category is null)
         {
-            return RedirectToPage("Index");
+            return NotFound();
         }
 
-        if (await _categories.IsInUseAsync(Category.Id))
+        if (await _categories.IsInUseAsync(Id))
         {
-            SetMessage("This category is still assigned to one or more scholarships and cannot be deleted.", isError: true);
-            return RedirectToPage("Index");
+            // Stay on the page with the reason showing, rather than bouncing
+            // back to the list where it is not obvious what was refused.
+            InUse = true;
+            ModelState.AddModelError(string.Empty,
+                "This category is still assigned to one or more scholarships and cannot be deleted.");
+            return Page();
         }
 
-        var name = (await _categories.GetByIdAsync(Category.Id))?.Name ?? "Category";
-        var deleted = await _categories.DeleteAsync(Category.Id);
-        if (deleted)
-        {
-            SetMessage($"Category \"{name}\" was deleted.");
-        }
+        var name = Category.Name;
+        await _categories.DeleteAsync(Id);
 
+        SetMessage($"Category \"{name}\" was deleted.");
         return RedirectToPage("Index");
     }
 }

@@ -4,6 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Grantify.Pages.Admin.Institutions;
 
+// OWNER: Member C (Admin role). Master data - institutions.
+//
+// Deleting is refused while any scholarship still points at this row. The check
+// runs BOTH when the page is drawn (so the button is disabled and the reason is
+// on screen) and again on the POST, because a disabled button is a courtesy,
+// not a rule — another administrator could link a scholarship to it in between.
 public class DeleteModel : AdminPageModel
 {
     private readonly InstitutionService _institutions;
@@ -14,41 +20,48 @@ public class DeleteModel : AdminPageModel
     }
 
     [BindProperty]
-    public Institution? Institution { get; set; }
+    public int Id { get; set; }
 
-    public bool InUse { get; set; }
+    public Institution? Institution { get; private set; }
+
+    // True when a scholarship still links to this institution.
+    public bool InUse { get; private set; }
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
         Institution = await _institutions.GetByIdAsync(id);
-        if (Institution is not null)
+        if (Institution is null)
         {
-            InUse = await _institutions.IsInUseAsync(id);
+            return NotFound();
         }
 
+        Id = Institution.Id;
+        InUse = await _institutions.IsInUseAsync(id);
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
+        Institution = await _institutions.GetByIdAsync(Id);
         if (Institution is null)
         {
-            return RedirectToPage("Index");
+            return NotFound();
         }
 
-        if (await _institutions.IsInUseAsync(Institution.Id))
+        if (await _institutions.IsInUseAsync(Id))
         {
-            SetMessage("This institution is still assigned to one or more scholarships and cannot be deleted.", isError: true);
-            return RedirectToPage("Index");
+            // Stay on the page with the reason showing, rather than bouncing
+            // back to the list where it is not obvious what was refused.
+            InUse = true;
+            ModelState.AddModelError(string.Empty,
+                "This institution is still assigned to one or more scholarships and cannot be deleted.");
+            return Page();
         }
 
-        var name = (await _institutions.GetByIdAsync(Institution.Id))?.Name ?? "Institution";
-        var deleted = await _institutions.DeleteAsync(Institution.Id);
-        if (deleted)
-        {
-            SetMessage($"Institution \"{name}\" was deleted.");
-        }
+        var name = Institution.Name;
+        await _institutions.DeleteAsync(Id);
 
+        SetMessage($"Institution \"{name}\" was deleted.");
         return RedirectToPage("Index");
     }
 }
