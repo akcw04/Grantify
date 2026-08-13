@@ -21,13 +21,58 @@ public class ScholarshipService
         _db = db;
     }
 
-    // Returns all scholarships students are allowed to see,
-    // closest deadline first.
+    // The scholarships a VISITOR sees on the public home page: published, and
+    // still open. Closest deadline first, so the most urgent is at the top.
+    //
+    // The deadline test matters. Without it the page listed scholarships whose
+    // closing date had already gone by, under a heading that says "Open
+    // scholarships" — and a visitor who registered because of one of them would
+    // find they could not apply. A student browsing inside the site sees closed
+    // ones marked as such (see StudentService.GetCatalogueAsync); out here,
+    // where nothing can be marked, they simply do not belong.
     public async Task<List<Scholarship>> GetPublishedAsync()
     {
+        var today = DateTime.Today;
+
         return await _db.Scholarships
-            .Where(s => s.IsPublished)
+            .Where(s => s.IsPublished && s.Deadline >= today)
             .OrderBy(s => s.Deadline)
             .ToListAsync();
     }
+
+    // The three numbers shown across the top of the public home page.
+    //
+    // They are counted from the real database rather than typed into the page.
+    // A landing page that claims figures the system cannot back up is the kind
+    // of thing a marker checks, and it would be wrong the moment an admin
+    // published anything.
+    public async Task<PublicStats> GetPublicStatsAsync()
+    {
+        var today = DateTime.Today;
+
+        return new PublicStats
+        {
+            OpenScholarships = await _db.Scholarships
+                .CountAsync(s => s.IsPublished && s.Deadline >= today),
+
+            // Distinct providers, so listing five scholarships from one
+            // university does not read as five partners.
+            Providers = await _db.Scholarships
+                .Where(s => s.IsPublished)
+                .Select(s => s.Provider)
+                .Distinct()
+                .CountAsync(),
+
+            AwardsMade = await _db.ScholarshipApplications
+                .CountAsync(a => a.Status == ApplicationStatus.Approved)
+        };
+    }
+}
+
+// The headline figures on the public home page.
+public class PublicStats
+{
+    public int OpenScholarships { get; set; }
+    public int Providers { get; set; }
+    public int AwardsMade { get; set; }
 }

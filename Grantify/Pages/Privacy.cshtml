@@ -1,8 +1,68 @@
-﻿@page
+@page
 @model PrivacyModel
 @{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Privacy";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+@* SHARED PAGE. Linked from the footer of every page, so it is the one place
+   that explains what the system holds about a student. It replaced the
+   placeholder text the project template ships with.
+
+   Written plainly and kept honest: it describes what the code actually does. If
+   a feature changes what we store, this page changes with it. *@
+
+<div class="page-header">
+    <h1>Privacy</h1>
+    <p class="page-subtitle">What Grantify stores about you, and who can see it.</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+
+        <h2 class="section-title">What we hold</h2>
+        <ul>
+            <li>Your name, email address and password. The password is stored only as a hash, never as text.</li>
+            <li>The academic and household details you enter on your profile: course, institution, CGPA and monthly household income.</li>
+            <li>The applications you send, and any supporting documents you upload.</li>
+            <li>A record of every action a scholarship officer takes on your application, including who did it and when.</li>
+        </ul>
+
+        <h2 class="section-title">Why we hold it</h2>
+        <p>
+            Your CGPA and household income are compared against each scholarship's published rules
+            to work out whether you qualify. Your documents are read by a scholarship officer to
+            check that what you entered is accurate. Nothing is used for any other purpose.
+        </p>
+
+        <h2 class="section-title">Who can see it</h2>
+        <ul>
+            <li><strong>You</strong> can see everything on your own account, and nothing on anyone else's.</li>
+            <li><strong>Scholarship officers</strong> can see applications and the documents attached to them, so they can review them.</li>
+            <li><strong>Administrators</strong> can see accounts and roles, and totals across the system. They do not open your documents.</li>
+        </ul>
+        <p>
+            Officers keep working notes on documents. Those notes stay between officers — the only
+            thing sent to you is a decision on your application, together with its reason.
+        </p>
+
+        <h2 class="section-title">Your documents</h2>
+        <p>
+            Uploaded files are kept in private storage, never in a public folder. They cannot be
+            reached by guessing a web address: every download goes through a check that you own
+            the application the file belongs to.
+        </p>
+
+        <h2 class="section-title">Keeping and removing data</h2>
+        <p>
+            Applications and their history are kept as a record of decisions made, so a result can
+            always be traced back to the officer who made it. If you no longer want an account,
+            ask a scholarship administrator to deactivate it.
+        </p>
+
+        <p class="cell-sub">
+            Grantify is a student project built for the module CT071-3-3-DDAC at Asia Pacific
+            University. It is not a live scholarship service.
+        </p>
+
+    </div>
+</div>

@@ -4,40 +4,198 @@
     ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Grantify</h1>
-    <p class="lead">Smart Scholarship Application and Review Portal</p>
+@* The public landing page — the only page a VISITOR sees before signing in.
+   Anyone already signed in never reaches it: IndexModel sends each role
+   straight to its own dashboard.
+
+   It has to do three things, in this order: say what the system is for, prove
+   there is something worth registering for, and explain what happens after you
+   apply. Everything on it comes from the database, so nothing here can claim a
+   figure the system cannot back up. *@
+
+<div class="landing">
+
+    @* ---------- 1. What this is ---------- *@
+    <section class="hero">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <p class="hero-eyebrow">Scholarship management</p>
+                <h1 class="hero-title">Every scholarship you qualify for, in one place.</h1>
+                <p class="hero-lead">
+                    Grantify checks your academic and household details against each
+                    scholarship's published rules, tells you straight away whether you
+                    qualify, and keeps you posted while an officer reviews your application.
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary btn-lg">
+                        Create a student account
+                    </a>
+                    <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-secondary btn-lg">
+                        Sign in
+                    </a>
+                </div>
+                <p class="cell-sub mt-3 mb-0">
+                    Free for students. Officer and administrator accounts are issued by the
+                    scholarship office.
+                </p>
+            </div>
+
+            @* ---------- The numbers, counted live ---------- *@
+            <div class="col-lg-5">
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="stat-value">@Model.Stats.OpenScholarships</div>
+                        <div class="stat-label">Open scholarships</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="stat-value">@Model.Stats.Providers</div>
+                        <div class="stat-label">Providers listed</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="stat-value">@Model.Stats.AwardsMade</div>
+                        <div class="stat-label">Awards made</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* ---------- 2. What is open right now ---------- *@
+    <section class="mt-5">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+            <div>
+                <h2 class="section-title mb-1">Open for applications</h2>
+                <p class="cell-sub mb-0">Closing soonest first. Sign in to see whether you qualify.</p>
+            </div>
+        </div>
+
+        @if (Model.Scholarships.Count == 0)
+        {
+            <div class="alert alert-light border">
+                No scholarships are open at the moment. New ones are published by the
+                scholarship office throughout the year — create an account and you will
+                see them as soon as they open.
+            </div>
+        }
+        else
+        {
+            <div class="row g-3">
+                @foreach (var scholarship in Model.Scholarships)
+                {
+                    var daysLeft = (scholarship.Deadline.Date - DateTime.Today).Days;
+
+                    <div class="col-md-6 col-xl-4">
+                        <div class="card h-100 listing-card">
+                            <div class="card-body d-flex flex-column">
+                                @* Under a fortnight is worth flagging: it is the difference
+                                   between "I will do it later" and "I will do it now". *@
+                                @if (daysLeft <= 14)
+                                {
+                                    <span class="badge bg-danger align-self-start mb-2">
+                                        Closes in @daysLeft day(s)
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-dark border align-self-start mb-2">
+                                        Closes @scholarship.Deadline.ToString("dd MMM yyyy")
+                                    </span>
+                                }
+
+                                <h3 class="listing-title">@scholarship.Name</h3>
+                                <div class="cell-sub mb-2">@scholarship.Provider</div>
+
+                                @if (!string.IsNullOrWhiteSpace(scholarship.Description))
+                                {
+                                    <p class="listing-description">@scholarship.Description</p>
+                                }
+
+                                <dl class="listing-criteria mt-auto mb-0">
+                                    <dt>Minimum CGPA</dt>
+                                    <dd>@scholarship.MinimumCgpa.ToString("0.00")</dd>
+
+                                    <dt>Income limit</dt>
+                                    <dd>
+                                        @(scholarship.MaximumHouseholdIncome is null
+                                            ? "None"
+                                            : $"RM {scholarship.MaximumHouseholdIncome.Value:N0} / month")
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    @* ---------- 3. What happens after you apply ----------
+       The part students actually worry about. Saying it plainly here is what
+       stops "has anyone even looked at this?" emails later. *@
+    <section class="mt-5">
+        <h2 class="section-title">How it works</h2>
+
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Set up your profile</h3>
+                    <p class="step-text">
+                        Enter your course, institution, CGPA and household income once.
+                        Every scholarship is screened against these.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">See what you qualify for</h3>
+                    <p class="step-text">
+                        Each listing shows "eligible" or "not eligible" with the exact
+                        reason for anything you do not meet — no guessing.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Apply and upload</h3>
+                    <p class="step-text">
+                        Attach your transcript and supporting documents. They are stored
+                        privately and only a scholarship officer can open them.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3 class="step-title">Follow the decision</h3>
+                    <p class="step-text">
+                        You are notified when an officer starts the review and when a
+                        decision is made — with the reason behind it.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* ---------- 4. Last call to action ---------- *@
+    <section class="mt-5">
+        <div class="cta-panel">
+            <div>
+                <h2 class="cta-title">Ready to apply?</h2>
+                <p class="cta-text mb-0">
+                    Creating an account takes a minute, and your profile is only entered once.
+                </p>
+            </div>
+            <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary btn-lg">
+                Get started
+            </a>
+        </div>
+    </section>
+
 </div>
 
-@* Example of showing data from the database. The list comes from
-   ScholarshipService — see Pages/Index.cshtml.cs for the pattern. *@
-<h2 class="h4 mt-4">Open Scholarships</h2>
-
-@if (Model.Scholarships.Count == 0)
-{
-    <p class="text-muted">No scholarships are published yet.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Provider</th>
-                <th>Minimum CGPA</th>
-                <th>Deadline</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var scholarship in Model.Scholarships)
-            {
-                <tr>
-                    <td>@scholarship.Name</td>
-                    <td>@scholarship.Provider</td>
-                    <td>@scholarship.MinimumCgpa.ToString("0.00")</td>
-                    <td>@scholarship.Deadline.ToString("dd MMM yyyy")</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+@section Styles {
+    <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
 }
