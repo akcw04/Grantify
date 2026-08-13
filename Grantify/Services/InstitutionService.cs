@@ -57,4 +57,9 @@ public class InstitutionService
         await _db.SaveChangesAsync();
         return true;
     }
+
+    public Task<bool> IsInUseAsync(int id)
+    {
+        return _db.Scholarships.AnyAsync(s => s.InstitutionId == id);
+    }
 }

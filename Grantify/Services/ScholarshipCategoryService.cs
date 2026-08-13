@@ -56,4 +56,9 @@ public class ScholarshipCategoryService
         await _db.SaveChangesAsync();
         return true;
     }
+
+    public Task<bool> IsInUseAsync(int id)
+    {
+        return _db.Scholarships.AnyAsync(s => s.ScholarshipCategoryId == id);
+    }
 }
