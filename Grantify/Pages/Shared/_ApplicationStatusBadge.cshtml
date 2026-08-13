@@ -1,0 +1,25 @@
+@model Grantify.Models.ApplicationStatus
+
+@* SHARED PARTIAL — announce in the group chat before changing.
+
+   Shows one application status as a coloured badge. The colour AND the wording
+   of a status are decided here and nowhere else, so a student and an officer
+   looking at the same application always see the same thing. A student seeing a
+   grey "Submitted" badge while an officer sees a blue "New" pill for the same
+   application makes the system look like two different products.
+
+   Use it with:  <partial name="_ApplicationStatusBadge" model="item.Status" /> *@
+
+@{
+    var (cssClass, label) = Model switch
+    {
+        ApplicationStatus.Submitted => ("bg-secondary", "Submitted"),
+        ApplicationStatus.UnderReview => ("bg-warning text-dark", "Under review"),
+        ApplicationStatus.Shortlisted => ("bg-primary", "Shortlisted"),
+        ApplicationStatus.Approved => ("bg-success", "Approved"),
+        ApplicationStatus.Rejected => ("bg-danger", "Rejected"),
+        _ => ("bg-secondary", Model.ToString())
+    };
+}
+
+<span class="badge @cssClass">@label</span>

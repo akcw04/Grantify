@@ -1,0 +1,35 @@
+@{
+    // Which tab is showing. The Identity pages set this themselves.
+    var active = ViewData["ActivePage"] as string;
+}
+
+@* SHARED PAGE. Overrides the account menu that ships with ASP.NET Core
+   Identity, for the same reason we replaced the sign-in page: it offered things
+   that do not work here.
+
+   What the built-in menu had, and why each one is gone:
+
+     Email                  - changing it sends a confirmation link, and we have
+                              no email service. It looked like it worked and
+                              sent nothing.
+     Two-factor auth        - needs an authenticator app and recovery codes we
+                              never issue. Out of scope for this system.
+     Personal data          - "Delete" permanently removes the account together
+                              with the applications attached to it. Nothing in
+                              this system is meant to remove a student's
+                              application history; an administrator deactivates
+                              an account instead (Admin > Manage users).
+
+   What is left is what genuinely works: the profile fields Identity owns, and
+   changing your own password. *@
+
+<ul class="nav nav-pills flex-column">
+    <li class="nav-item">
+        <a class="nav-link @(active == "Index" ? "active" : null)"
+           id="profile" asp-page="./Index">Profile</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(active == "ChangePassword" ? "active" : null)"
+           id="change-password" asp-page="./ChangePassword">Password</a>
+    </li>
+</ul>

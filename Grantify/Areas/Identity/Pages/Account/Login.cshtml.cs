@@ -23,11 +23,16 @@ namespace Grantify.Areas.Identity.Pages.Account;
 public class LoginModel : PageModel
 {
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<LoginModel> _logger;
 
-    public LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
+    public LoginModel(
+        SignInManager<ApplicationUser> signInManager,
+        UserManager<ApplicationUser> userManager,
+        ILogger<LoginModel> logger)
     {
         _signInManager = signInManager;
+        _userManager = userManager;
         _logger = logger;
     }
 
@@ -93,9 +98,25 @@ public class LoginModel : PageModel
 
         if (result.IsLockedOut)
         {
-            _logger.LogWarning("Account {Email} is locked out.", Input.Email);
-            ModelState.AddModelError(string.Empty,
-                "This account is temporarily locked after too many failed attempts. Please try again shortly.");
+            // Two very different things arrive here as "locked out", and telling
+            // somebody to "try again shortly" when their account was switched
+            // off on purpose just sends them away to wait for nothing.
+            //
+            // An administrator deactivating an account sets the lockout to the
+            // far future (see AdminUserService.UpdateUserAsync). A few wrong
+            // passwords sets it minutes ahead. The date is what separates them.
+            var user = await _userManager.FindByEmailAsync(Input.Email);
+            var deactivated = user is not null
+                              && user.LockoutEnd is not null
+                              && user.LockoutEnd > DateTimeOffset.UtcNow.AddYears(1);
+
+            _logger.LogWarning("Sign-in refused for {Email}: account is {Reason}.",
+                Input.Email, deactivated ? "deactivated" : "temporarily locked");
+
+            ModelState.AddModelError(string.Empty, deactivated
+                ? "This account has been deactivated. Please contact a scholarship administrator."
+                : "This account is temporarily locked after too many failed attempts. Please try again shortly.");
+
             return Page();
         }
 

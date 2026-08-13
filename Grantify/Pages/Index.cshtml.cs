@@ -21,6 +21,9 @@ public class IndexModel : PageModel
     // The list the .cshtml file displays.
     public List<Scholarship> Scholarships { get; set; } = new();
 
+    // The headline figures across the top of the page.
+    public PublicStats Stats { get; set; } = new();
+
     public async Task<IActionResult> OnGetAsync()
     {
         // Someone who is signed in goes straight to their own area.
@@ -37,6 +40,7 @@ public class IndexModel : PageModel
         }
 
         Scholarships = await _scholarshipService.GetPublishedAsync();
+        Stats = await _scholarshipService.GetPublicStatsAsync();
         return Page();
     }
 }

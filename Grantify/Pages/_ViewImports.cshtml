@@ -1,5 +1,11 @@
-﻿@using Microsoft.AspNetCore.Identity
+@* SHARED. The using statements every page in Pages/ gets for free, so no page
+   or role folder has to repeat them. Each role used to keep its own copy of
+   these two Grantify lines; Admin never had one, which is why some of its pages
+   needed a @using at the top. *@
+@using Microsoft.AspNetCore.Identity
 @using Grantify
 @using Grantify.Data
+@using Grantify.Models
+@using Grantify.Services
 @namespace Grantify.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers

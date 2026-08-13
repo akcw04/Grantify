@@ -1,32 +1,12 @@
-/* OWNER: Member A (Student role).
-   Only the few things Bootstrap does not already give us: the dashboard tiles
-   and a hover state on the scholarship cards. Everything else is plain
-   Bootstrap, so this file stays small and merges cleanly with a shared theme. */
+/* OWNER: Member A. Styles used ONLY on Student pages.
+   This file loads on top of the shared site.css.
 
-.student-page .stat-card {
-    background: #fff;
-    border: 1px solid #dee2e6;
-    border-left: 4px solid #0d6efd;
-    padding: .75rem 1rem;
-    height: 100%;
-}
+   DELIBERATELY SMALL. The dashboard tiles, small print and table headers these
+   pages used to define are now in the shared theme, so all three roles get
+   them. What is left here is only what no other role has: the scholarship
+   cards a student browses, and the mark on an unread notification.
 
-.student-page .stat-label {
-    font-size: .75rem;
-    text-transform: uppercase;
-    color: #6c757d;
-}
-
-.student-page .stat-value {
-    font-size: 1.6rem;
-    font-weight: 700;
-    line-height: 1.2;
-}
-
-.student-page .stat-note {
-    font-size: .8rem;
-    color: #6c757d;
-}
+   Anything Bootstrap or site.css already provides is NOT redefined here. */
 
 /* Makes it obvious which card the mouse is on when browsing the list. */
 .student-page .scholarship-card {
@@ -34,10 +14,11 @@
 }
 
 .student-page .scholarship-card:hover {
-    border-color: #0d6efd;
+    border-color: var(--g-primary);
 }
 
-/* An unread notification is marked down the left edge. */
+/* An unread notification is marked down the left edge, the same blue edge the
+   dashboard tiles use. */
 .student-page .notification-unread {
-    border-left: 4px solid #0d6efd;
+    border-left: var(--g-accent-width) solid var(--g-primary);
 }

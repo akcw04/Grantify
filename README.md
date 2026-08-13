@@ -8,6 +8,9 @@ Cloud-based scholarship management system (CT071-3-3-DDAC group project). ASP.NE
 3. Press F5. The app creates and fills your local database by itself on first run.
 4. Log in with a test account (all passwords `Grantify@123`):
    - `student@grantify.test` / `officer@grantify.test` / `admin@grantify.test`
+   - Or press **Create an account** on the sign-in page: a new sign-up becomes a Student.
+
+These test accounts exist **only when you run locally**. The deployed site seeds nothing unless the `Seed__*` environment properties are set — see CONFIG-GUIDE.txt.
 
 Database questions? Read **DATABASE-GUIDE.txt** (same folder as this file) — it explains setup, daily use, and how to change tables safely.
 
@@ -25,12 +28,17 @@ Grantify/                        <- repo root
     │   ├── Student/             <- Member A builds student pages here
     │   ├── Officer/             <- Member B builds officer pages here
     │   ├── Admin/               <- Member C builds admin pages here
-    │   └── Shared/              <- layout + navbar (shared, announce changes)
+    │   └── Shared/              <- layout, navbar and the shared partials
+    │                               (_StatusMessage, the status badges,
+    │                               _ActionIcon) — announce changes
     ├── wwwroot/                 <- css, javascript, images
-    │   ├── css/site.css         <- SHARED theme, loads on every page (announce changes)
-    │   ├── css/student|officer|admin/  <- styles only YOUR role's pages use
-    │   ├── js/site.js           <- SHARED javascript (announce changes)
-    │   ├── js/student|officer|admin/   <- scripts only YOUR role's pages use
+    │   ├── css/site.css         <- SHARED theme: every colour, font size and
+    │   │                           spacing token, plus the components all three
+    │   │                           roles use (announce changes)
+    │   ├── css/student|officer|admin/  <- ONLY what one role has and the others do not
+    │   ├── js/site.js           <- SHARED javascript, incl. the confirm dialog
+    │   ├── js/officer/          <- scripts only one role needs (Student and Admin
+    │   │                           have none — site.js covers them)
     │   ├── images/              <- logos, icons (see images/README.txt for rules)
     │   └── lib/                 <- Bootstrap, jQuery — third-party, do not edit
     │
@@ -50,9 +58,28 @@ Grantify/                        <- repo root
 - New service class? Register it with one line in `Program.cs` (section 4).
 
 ### CSS and JavaScript rule
-- `css/site.css` and `js/site.js` are the **shared base** — the app must look like ONE system (the marking scheme rewards a consistent theme). Colors, fonts, spacing live here.
-- Each role folder (`css/student/` etc.) holds styles/scripts **only that role's pages** need, loaded per page with an `@section Styles` / `@section Scripts` block — the three dashboard pages show how; copy from yours.
+- `css/site.css` and `js/site.js` are the **shared base** — the app must look like ONE system (the marking scheme rewards a consistent theme). Every colour and font size is a token at the top of `site.css`; use the token, never a raw hex code.
+- The shared components live there too, and all three roles use them: `.page-header`, `.stat-card`, `.data-table`, `.filter-bar`, `.cell-sub`, `.section-title`, `.empty-row`. Before writing a new style, check whether one of these already covers it.
+- Each role folder (`css/officer/` etc.) holds **only what that role has and the others do not** — loaded per page with an `@section Styles` block at the BOTTOM of the file. Copy the pattern from any existing page.
 - Never copy shared rules into your role css "to be safe" — change the shared file (after announcing) or add only what is new.
+- Never style a bare element (`h1 { … }`) in a role file: it leaks onto every page that loads it. Scope it (`.officer-page .document-row`) or put it in `site.css`.
+
+### Shared partials
+Use these instead of writing the markup again — they keep one status looking the same in all three modules:
+
+| Partial | What it does |
+|---|---|
+| `_StatusMessage` | the green/red bar after an action |
+| `_ApplicationStatusBadge` | Submitted / Under review / Shortlisted / Approved / Rejected |
+| `_DocumentStatusBadge` | Pending / Verified / Flagged |
+| `_ScholarshipStatusBadge` | Draft / Published / Closed |
+| `_ActionIcon` | the small view / edit / delete / new icons |
+
+Need a form to ask "are you sure?" — add `data-confirm="Your question?"` to the `<form>` tag. `js/site.js` does the rest.
+
+### Dates and wording
+- Dates are always `dd MMM yyyy` (`13 Aug 2026`). Never `ToString("d")` — it changes with the server's region setting.
+- Headings and labels are sentence case ("Manage users"), not Title Case ("Manage Users").
 
 ### Page access by role
 Access rules are set **once** in `Program.cs` (section 3): everything under `Pages/Student/` needs the Student role, `Pages/Officer/` the Officer role, `Pages/Admin/` the Admin role. You do not need `[Authorize]` on each page.

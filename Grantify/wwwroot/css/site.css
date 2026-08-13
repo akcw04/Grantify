@@ -1,35 +1,357 @@
 /* SHARED THEME — loads on EVERY page. Announce in group chat before changing.
-   Keep the app looking like ONE system: colors, fonts and spacing live here.
-   Styles that only ONE role needs go in css/student/, css/officer/ or css/admin/. */
+   Keep the app looking like ONE system: colours, fonts and spacing live here.
+   Styles that only ONE role needs go in css/student/, css/officer/ or css/admin/.
 
+   The look is taken from the Officer pages, which the team agreed on: square
+   cards with a blue left edge, small uppercase labels, muted grey small print
+   and plain square badges. Student and Admin were brought to match, so the
+   three modules read as one product rather than three projects.
+
+   RULE OF THUMB: if two roles need it, it belongs in this file. Never redefine
+   here anything Bootstrap already gives us. */
+
+/* ==================================================================
+   1. Design tokens — the only place a colour or size is decided
+   ================================================================== */
+:root {
+    /* Brand and state colours. These are Bootstrap's own values, named so a
+       page never has to write a raw hex code. */
+    --g-primary: #0d6efd;
+    --g-success: #198754;
+    --g-danger: #dc3545;
+    --g-warning: #ffc107;
+
+    /* Neutrals */
+    --g-ink: #212529;       /* normal text */
+    --g-muted: #6c757d;     /* small print, labels, captions */
+    --g-line: #dee2e6;      /* borders and rules */
+    --g-surface: #f8f9fa;   /* filter bars, table headers, tinted panels */
+    --g-white: #fff;
+
+    /* Type scale. Every font-size in the app comes from one of these. */
+    --g-text-xs: .75rem;    /* uppercase micro-labels */
+    --g-text-sm: .8rem;     /* small print under a name, dates */
+    --g-text-md: .875rem;   /* secondary body text */
+    --g-text-lg: 1rem;      /* body */
+    --g-title: 2rem;        /* page title */
+    --g-stat: 1.6rem;       /* the big number on a dashboard tile */
+
+    /* Shape. Kept small and square — the Officer look. */
+    --g-radius: .375rem;
+    --g-accent-width: 4px;
+}
+
+/* ==================================================================
+   2. Page basics
+   ================================================================== */
 html {
-  font-size: 14px;
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+    html {
+        font-size: 16px;
+    }
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    /* Stated explicitly rather than inherited, so the three modules cannot
+       drift apart if somebody restyles one of them later. */
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--g-ink);
+    background: var(--g-white);
+}
+
+/* The project template shipped a scoped stylesheet (_Layout.cshtml.css) that
+   quietly repainted links and .btn-primary a DIFFERENT blue (#1b6ec2) from the
+   one the dashboards use. Buttons and stat-card edges were two shades apart on
+   every page. That file is gone; anything from it still worth having is below,
+   written against the tokens so there is only one blue in the app. */
+
+/* ==================================================================
+   2b. Navigation bar
+   ================================================================== */
+.navbar {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .04);
+}
+
+.navbar-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    font-weight: 700;
+    color: var(--g-ink);
+}
+
+/* Signed in, the brand is plain text rather than a link. Bootstrap still gives
+   .navbar-brand a pointer cursor and a hover colour, which would promise a click
+   that does nothing — so both are turned off here. */
+.navbar-brand-static {
+    cursor: default;
+}
+
+.navbar-brand-static:hover {
+    color: var(--g-ink);
+}
+
+/* The square "G" mark next to the name. Drawn in CSS rather than shipped as an
+   image file, so there is no asset to lose and it stays sharp at any zoom. */
+.brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--g-radius);
+    background: var(--g-primary);
+    color: var(--g-white);
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.navbar .nav-link {
+    color: var(--g-ink);
+    padding-top: .75rem;
+    padding-bottom: .75rem;
+}
+
+.navbar .nav-link:hover {
+    color: var(--g-primary);
+}
+
+/* Which page you are on. An inset shadow rather than a real border, so the
+   link does not move by a pixel when it becomes the current one. */
+.navbar .nav-link.active {
+    color: var(--g-primary);
+    font-weight: 600;
+    box-shadow: inset 0 -3px 0 var(--g-primary);
+}
+
+/* ==================================================================
+   2c. Footer
+   ================================================================== */
+.site-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    line-height: 60px;
+    color: var(--g-muted);
+    font-size: var(--g-text-md);
+    border-color: var(--g-line) !important;
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+    color: var(--bs-secondary-color);
+    text-align: end;
 }
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+    text-align: start;
+}
+
+/* ==================================================================
+   3. Page header — the same title block on every page in every role
+   ================================================================== */
+.page-header {
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    font-size: var(--g-title);
+    font-weight: 600;
+    margin-bottom: .25rem;
+}
+
+/* The one-line explanation under a page title. */
+.page-subtitle {
+    color: var(--g-muted);
+    margin-bottom: 0;
+}
+
+/* Section headings inside a page (card titles, sub-sections). */
+.section-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: .75rem;
+}
+
+/* ==================================================================
+   4. Dashboard number tiles
+   Used by all three roles, so the numbers look the same everywhere.
+   ================================================================== */
+.stat-card {
+    background: var(--g-white);
+    border: 1px solid var(--g-line);
+    border-left: var(--g-accent-width) solid var(--g-primary);
+    border-radius: var(--g-radius);
+    padding: .75rem 1rem;
+    height: 100%;
+}
+
+.stat-label {
+    font-size: var(--g-text-xs);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--g-muted);
+}
+
+.stat-value {
+    font-size: var(--g-stat);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--g-ink);
+}
+
+.stat-note {
+    font-size: var(--g-text-sm);
+    color: var(--g-muted);
+}
+
+/* A tile that needs attention gets an amber edge instead of blue. */
+.stat-card.stat-attention {
+    border-left-color: var(--g-warning);
+}
+
+/* ==================================================================
+   5. Small print used in tables and cards
+   A student's email under their name, upload dates, and similar.
+   ================================================================== */
+.cell-sub {
+    font-size: var(--g-text-sm);
+    color: var(--g-muted);
+}
+
+/* ==================================================================
+   6. Data tables — one header style for every list in the app
+   ================================================================== */
+.data-table {
+    margin-bottom: 0;
+}
+
+.data-table thead th {
+    font-size: var(--g-text-xs);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    font-weight: 700;
+    color: var(--g-muted);
+    background-color: var(--g-surface);
+    border-bottom: 2px solid var(--g-line);
+    white-space: nowrap;
+}
+
+.data-table td,
+.data-table th {
+    padding: .75rem 1rem;
+    vertical-align: middle;
+}
+
+/* Shown in place of rows when a list has nothing in it. */
+.empty-row td {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: var(--g-muted);
+}
+
+/* ==================================================================
+   7. Filter bar above a list
+   ================================================================== */
+.filter-bar {
+    background: var(--g-surface);
+    border: 1px solid var(--g-line);
+    border-radius: var(--g-radius);
+    padding: .85rem;
+}
+
+.filter-bar label {
+    font-size: var(--g-text-sm);
+    font-weight: 600;
+    color: var(--g-muted);
+    margin-bottom: .15rem;
+}
+
+/* ==================================================================
+   8. Cards
+   ================================================================== */
+.card {
+    border-color: var(--g-line);
+}
+
+.card-header {
+    background-color: var(--g-surface);
+    font-weight: 600;
+}
+
+/* ==================================================================
+   9. Our own confirm dialog
+   Replaces window.confirm, which the browser labels with the site address
+   ("localhost:5199 says") and which cannot be styled. Built by site.js, so
+   every role can ask "are you sure?" the same way.
+   ================================================================== */
+.app-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(33, 37, 41, .5);
+}
+
+.app-dialog-backdrop[hidden] {
+    display: none;
+}
+
+/* Stop the page behind scrolling while the dialog is open. */
+body.app-dialog-open {
+    overflow: hidden;
+}
+
+.app-dialog {
+    width: 100%;
+    max-width: 28rem;
+    background: var(--g-white);
+    border-radius: var(--g-radius);
+    box-shadow: 0 .75rem 2rem rgba(0, 0, 0, .25);
+    padding: 1.25rem;
+}
+
+.app-dialog-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 .5rem;
+}
+
+.app-dialog-body {
+    margin: 0 0 .5rem;
+}
+
+.app-dialog-warning {
+    margin: 0;
+    font-size: var(--g-text-md);
+    color: #842029;
+    background: #f8d7da;
+    border: 1px solid #f1aeb5;
+    border-radius: var(--g-radius);
+    padding: .5rem .75rem;
+}
+
+/* Hide the warning line when there is nothing to warn about. */
+.app-dialog-warning:empty {
+    display: none;
+}
+
+.app-dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: .5rem;
+    margin-top: 1.25rem;
 }

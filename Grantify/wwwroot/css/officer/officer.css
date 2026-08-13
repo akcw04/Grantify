@@ -1,86 +1,18 @@
 /* OWNER: Member B. Styles used ONLY on Officer pages.
    This file loads on top of the shared site.css.
 
-   DELIBERATELY SMALL, and deliberately matched to Member A's student.css so the
-   two modules look like one system:
-     - the stat tiles use the same class names and the same blue left edge
-     - statuses use plain Bootstrap badges, not custom pills
-     - cards and tables are plain Bootstrap (card / table-responsive)
-   Anything Bootstrap already provides is NOT redefined here. */
+   DELIBERATELY SMALL. The look these pages introduced — square stat cards with
+   a blue left edge, small uppercase table headers, muted grey small print — is
+   now the shared theme in site.css and is used by all three roles. What is left
+   here is only what no other role has: the document rows and the audit trail on
+   the review page.
 
-/* ---------- Colours used across the officer pages ---------- */
-.officer-page {
-    --officer-line: #dee2e6;
-    --officer-muted: #6c757d;
-    --officer-surface: #f8f9fa;
-}
+   Anything Bootstrap or site.css already provides is NOT redefined here. */
 
-/* ---------- Dashboard number tiles ----------
-   Same shape as .student-page .stat-card, including the blue left edge. */
-.officer-page .stat-card {
-    background: #fff;
-    border: 1px solid #dee2e6;
-    border-left: 4px solid #0d6efd;
-    padding: .75rem 1rem;
-    height: 100%;
-}
-
-.officer-page .stat-label {
-    font-size: .75rem;
-    text-transform: uppercase;
-    color: #6c757d;
-}
-
-.officer-page .stat-value {
-    font-size: 1.6rem;
-    font-weight: 700;
-    line-height: 1.2;
-}
-
-.officer-page .stat-note {
-    font-size: .8rem;
-    color: #6c757d;
-}
-
-/* A tile that needs attention gets an amber edge instead of blue. */
-.officer-page .stat-card.stat-attention {
-    border-left-color: #ffc107;
-}
-
-/* ---------- Small print used in tables and cards ----------
-   The student's email under their name, upload dates, and similar. */
-.officer-page .cell-sub {
-    font-size: .8rem;
-    color: var(--officer-muted);
-}
-
-/* ---------- Queue table ---------- */
-.officer-page .queue-table thead th {
-    font-size: .78rem;
-    text-transform: uppercase;
-    letter-spacing: .03em;
-    color: var(--officer-muted);
-    white-space: nowrap;
-}
-
-/* Rows past their deadline get a warning edge so they stand out. */
+/* ---------- Queue table ----------
+   Rows past their deadline get a warning edge so they stand out. */
 .officer-page .queue-table tr.row-overdue td:first-child {
-    box-shadow: inset 3px 0 0 #ffc107;
-}
-
-/* ---------- Filter bar ---------- */
-.officer-page .filter-bar {
-    background: var(--officer-surface);
-    border: 1px solid var(--officer-line);
-    border-radius: .375rem;
-    padding: .85rem;
-}
-
-.officer-page .filter-bar label {
-    font-size: .8rem;
-    font-weight: 600;
-    color: var(--officer-muted);
-    margin-bottom: .15rem;
+    box-shadow: inset 3px 0 0 var(--g-warning);
 }
 
 /* ---------- Review page ---------- */
@@ -89,7 +21,7 @@
 .officer-page .document-row {
     padding-bottom: .85rem;
     margin-bottom: .85rem;
-    border-bottom: 1px dashed var(--officer-line);
+    border-bottom: 1px dashed var(--g-line);
 }
 
 .officer-page .document-row:last-child {
@@ -112,7 +44,7 @@
 
 .officer-page .history-item {
     padding-left: .9rem;
-    border-left: 2px solid var(--officer-line);
+    border-left: 2px solid var(--g-line);
     padding-bottom: .9rem;
 }
 
@@ -122,78 +54,14 @@
 
 .officer-page .history-action {
     font-weight: 600;
-    font-size: .925rem;
+    font-size: var(--g-text-md);
 }
 
 .officer-page .history-meta {
-    font-size: .78rem;
-    color: var(--officer-muted);
+    font-size: var(--g-text-sm);
+    color: var(--g-muted);
 }
 
 .officer-page .history-detail {
-    font-size: .85rem;
-}
-
-/* ---------- Our own confirm dialog ----------
-   Replaces window.confirm, which the browser labels with the site address
-   ("localhost:5199 says") and which cannot be styled. Built by officer.js. */
-.officer-dialog-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 1080;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    background: rgba(33, 37, 41, .5);
-}
-
-.officer-dialog-backdrop[hidden] {
-    display: none;
-}
-
-/* Stop the page behind scrolling while the dialog is open. */
-body.officer-dialog-open {
-    overflow: hidden;
-}
-
-.officer-dialog {
-    width: 100%;
-    max-width: 28rem;
-    background: #fff;
-    border-radius: .375rem;
-    box-shadow: 0 .75rem 2rem rgba(0, 0, 0, .25);
-    padding: 1.25rem;
-}
-
-.officer-dialog-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin: 0 0 .5rem;
-}
-
-.officer-dialog-body {
-    margin: 0 0 .5rem;
-}
-
-.officer-dialog-warning {
-    margin: 0;
-    font-size: .875rem;
-    color: #842029;
-    background: #f8d7da;
-    border: 1px solid #f1aeb5;
-    border-radius: .375rem;
-    padding: .5rem .75rem;
-}
-
-/* Hide the warning line when there is nothing to warn about. */
-.officer-dialog-warning:empty {
-    display: none;
-}
-
-.officer-dialog-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: .5rem;
-    margin-top: 1.25rem;
+    font-size: var(--g-text-md);
 }
