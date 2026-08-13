@@ -4,46 +4,79 @@
     ViewData["Title"] = "Edit User";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/admin/admin-layout.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/admin/admin.css" asp-append-version="true" />
-}
+@* OWNER: Member C (Admin role). What an administrator can change about an
+   account: whether it can sign in, and whether it is a scholarship officer.
+   Names and passwords belong to the account holder, not to us. *@
 
-<div class="admin-dashboard">
-    <div class="d-flex flex-wrap justify-content-between align-items-center admin-toolbar mb-3">
-        <div>
-            <h1 class="h3 mb-1">Edit User</h1>
-            <p class="text-muted mb-0">@Model.Email</p>
-        </div>
+<div class="admin-page">
+
+    <div class="page-header">
+        <h1>Edit user</h1>
+        <p class="page-subtitle">@Model.Email</p>
     </div>
 
-    <div class="card admin-card shadow-sm">
-        <div class="card-body p-4">
-            <form method="post">
-                <input type="hidden" asp-for="Id" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"
+         style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
 
-                <dl class="row mb-4">
-                    <dt class="col-sm-3">Email</dt>
-                    <dd class="col-sm-9">@Model.Email</dd>
-                    <dt class="col-sm-3">Full Name</dt>
-                    <dd class="col-sm-9">@Model.FullName</dd>
-                </dl>
+    @* Warn before somebody changes an account that can administer the system,
+       or their own. The service refuses the dangerous cases outright; this is
+       so an administrator is not surprised by the refusal. *@
+    @if (Model.IsOwnAccount)
+    {
+        <div class="alert alert-info">
+            This is the account you are signed in with, so it cannot be deactivated here.
+        </div>
+    }
+    else if (Model.IsAdminAccount)
+    {
+        <div class="alert alert-warning">
+            This account is an administrator. Deactivating it is refused if it is the last
+            active administrator, because nobody would be able to reach these pages afterwards.
+        </div>
+    }
 
-                <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" role="switch" asp-for="Input.IsActive" />
-                    <label class="form-check-label" asp-for="Input.IsActive"></label>
-                    <div class="form-text">Deactivated users cannot sign in.</div>
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-body p-4">
+                    <form method="post">
+                        <input type="hidden" asp-for="Id" />
+
+                        <dl class="row mb-4">
+                            <dt class="col-sm-3">Full name</dt>
+                            <dd class="col-sm-9">
+                                @(string.IsNullOrWhiteSpace(Model.FullName) ? "(no name given)" : Model.FullName)
+                            </dd>
+
+                            <dt class="col-sm-3">Email</dt>
+                            <dd class="col-sm-9">@Model.Email</dd>
+                        </dl>
+
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" role="switch"
+                                   asp-for="Input.IsActive" disabled="@Model.IsOwnAccount" />
+                            <label class="form-check-label" asp-for="Input.IsActive"></label>
+                            <div class="form-text">
+                                A deactivated account is refused at sign-in, and any session it
+                                already has ends within a minute.
+                            </div>
+                        </div>
+
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" role="switch" asp-for="Input.IsOfficer" />
+                            <label class="form-check-label" asp-for="Input.IsOfficer"></label>
+                            <div class="form-text">Gives access to the review queue and document verification.</div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                        <a asp-page="Index" class="btn btn-outline-secondary">Cancel</a>
+                    </form>
                 </div>
-
-                <div class="form-check form-switch mb-4">
-                    <input class="form-check-input" type="checkbox" role="switch" asp-for="Input.IsOfficer" />
-                    <label class="form-check-label" asp-for="Input.IsOfficer"></label>
-                    <div class="form-text">Grants access to the officer review queue.</div>
-                </div>
-
-                <button type="submit" class="btn btn-primary">Save changes</button>
-                <a asp-page="Index" class="btn btn-outline-secondary">Cancel</a>
-            </form>
+            </div>
         </div>
     </div>
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin/admin.css" asp-append-version="true" />
+}

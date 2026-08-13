@@ -22,12 +22,18 @@ public class EditModel : AdminPageModel
     public string Email { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
 
+    // True when the account being edited is an administrator, and when it is
+    // the administrator doing the editing. The form uses both to explain why
+    // the "Active" switch is not always available.
+    public bool IsAdminAccount { get; private set; }
+    public bool IsOwnAccount => Id == CurrentUserId;
+
     public class InputModel
     {
         [Display(Name = "Active")]
         public bool IsActive { get; set; }
 
-        [Display(Name = "Scholarship Officer")]
+        [Display(Name = "Scholarship officer")]
         public bool IsOfficer { get; set; }
     }
 
@@ -42,6 +48,7 @@ public class EditModel : AdminPageModel
         Id = user.Id;
         Email = user.Email;
         FullName = user.FullName;
+        IsAdminAccount = user.IsAdmin;
         Input = new InputModel
         {
             IsActive = user.IsActive,
@@ -59,9 +66,26 @@ public class EditModel : AdminPageModel
             return NotFound();
         }
 
-        await _users.UpdateUserAsync(Id, Input.IsActive, Input.IsOfficer);
+        // The "Active" switch is disabled on your own account, and a disabled
+        // checkbox posts nothing at all — which arrives here as "off" and would
+        // deactivate the very account being used. Read it back as it really is.
+        var isActive = IsOwnAccount || Input.IsActive;
 
-        SetMessage($"{existing.Email} was updated.");
+        // The service refuses a change that would lock every administrator out
+        // of the system. When it does, stay on the form and say why instead of
+        // redirecting away as if the save had worked.
+        var result = await _users.UpdateUserAsync(Id, isActive, Input.IsOfficer, CurrentUserId);
+
+        if (!result.Success)
+        {
+            Email = existing.Email;
+            FullName = existing.FullName;
+            IsAdminAccount = existing.IsAdmin;
+            ModelState.AddModelError(string.Empty, result.Message);
+            return Page();
+        }
+
+        ShowResult(result);
         return RedirectToPage("Index");
     }
 }

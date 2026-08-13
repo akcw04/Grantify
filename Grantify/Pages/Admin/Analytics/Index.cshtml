@@ -1,64 +1,62 @@
 @page
 @model Grantify.Pages.Admin.Analytics.IndexModel
 @{
-    ViewData["Title"] = "Analytics";
+    ViewData["Title"] = "Admin Dashboard";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/admin/admin-layout.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/admin/admin.css" asp-append-version="true" />
-}
+@* OWNER: Member C (Admin role). The administrator's home page — /Admin
+   redirects here. The stat tiles, tables and headings all come from the shared
+   theme in site.css, so this looks like the Officer and Student dashboards. *@
 
-<div class="admin-dashboard">
-    <div class="admin-toolbar mb-3">
-        <h1 class="h3 mb-1">Analytics &amp; Reports</h1>
-        <p class="text-muted mb-0">A snapshot of scholarships, users and application outcomes.</p>
+<div class="admin-page">
+
+    <div class="page-header">
+        <h1>Admin dashboard</h1>
+        <p class="page-subtitle">A snapshot of scholarships, users and application outcomes.</p>
     </div>
 
+    <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
+
+    @* ---------- Counts ---------- *@
     <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-lg-3">
-            <div class="card stat-card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="stat-value">@Model.Summary.TotalActiveScholarships</div>
-                    <div class="stat-label">Active Scholarships</div>
-                </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-label">Active scholarships</div>
+                <div class="stat-value">@Model.Summary.TotalActiveScholarships</div>
+                <div class="stat-note">published and still open</div>
             </div>
         </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="card stat-card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="stat-value">@Model.Summary.TotalRegisteredUsers</div>
-                    <div class="stat-label">Registered Users</div>
-                </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-label">Registered users</div>
+                <div class="stat-value">@Model.Summary.TotalRegisteredUsers</div>
+                <div class="stat-note">students, officers and admins</div>
             </div>
         </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="card stat-card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="stat-value">@Model.Summary.TotalApplications</div>
-                    <div class="stat-label">Applications Submitted</div>
-                </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-label">Applications</div>
+                <div class="stat-value">@Model.Summary.TotalApplications</div>
+                <div class="stat-note">submitted in total</div>
             </div>
         </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="card stat-card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="stat-value">@Model.Summary.ApprovalRatePercent.ToString("0.#")%</div>
-                    <div class="stat-label">Approval Rate</div>
-                </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-label">Approval rate</div>
+                <div class="stat-value">@Model.Summary.ApprovalRatePercent.ToString("0.#")%</div>
+                <div class="stat-note">of all applications decided so far</div>
             </div>
         </div>
     </div>
 
     <div class="row g-3">
+        @* ---------- Where every application stands ---------- *@
         <div class="col-lg-7">
-            <div class="card admin-card admin-card-flush shadow-sm h-100">
-                <div class="card-header bg-white border-bottom">
-                    <h2 class="h5 mb-0">Application Status by Scholarship</h2>
-                </div>
-                <div class="card-body">
+            <div class="card h-100">
+                <div class="card-header">Application status by scholarship</div>
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover table-striped align-middle admin-table">
+                        <table class="table table-hover align-middle data-table">
                             <thead>
                                 <tr>
                                     <th>Scholarship</th>
@@ -79,9 +77,9 @@
                                         <td class="text-end fw-semibold">@row.Total</td>
                                     </tr>
                                 }
-                                @if (!Model.StatusBreakdown.Any())
+                                @if (Model.StatusBreakdown.Count == 0)
                                 {
-                                    <tr class="admin-empty-state">
+                                    <tr class="empty-row">
                                         <td colspan="5">No scholarships yet.</td>
                                     </tr>
                                 }
@@ -92,35 +90,43 @@
             </div>
         </div>
 
+        @* ---------- What closes next ---------- *@
         <div class="col-lg-5">
-            <div class="card admin-card admin-card-flush shadow-sm h-100">
-                <div class="card-header bg-white border-bottom">
-                    <h2 class="h5 mb-0">Upcoming Deadlines</h2>
-                </div>
-                <div class="card-body">
+            <div class="card h-100">
+                <div class="card-header">Upcoming deadlines</div>
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover table-striped align-middle admin-table">
+                        <table class="table table-hover align-middle data-table">
                             <thead>
                                 <tr>
                                     <th>Scholarship</th>
                                     <th class="text-end">Deadline</th>
-                                    <th class="text-end">Days Left</th>
+                                    <th class="text-end">Days left</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var scholarship in Model.UpcomingDeadlines)
                                 {
                                     var daysLeft = (scholarship.Deadline.Date - DateTime.Today).Days;
-                                    var badgeClass = daysLeft <= 7 ? "text-bg-danger" : daysLeft <= 30 ? "text-bg-warning" : "text-bg-secondary";
+
+                                    @* Red inside a week, amber inside a month. An
+                                       administrator should be able to see at a glance
+                                       what needs publicising now. *@
+                                    var badgeClass = daysLeft <= 7 ? "bg-danger"
+                                        : daysLeft <= 30 ? "bg-warning text-dark"
+                                        : "bg-secondary";
+
                                     <tr>
                                         <td>@scholarship.Name</td>
-                                        <td class="text-end">@scholarship.Deadline.ToString("d")</td>
-                                        <td class="text-end"><span class="badge rounded-pill @badgeClass">@daysLeft d</span></td>
+                                        <td class="text-end text-nowrap">@scholarship.Deadline.ToString("dd MMM yyyy")</td>
+                                        <td class="text-end">
+                                            <span class="badge @badgeClass">@daysLeft day(s)</span>
+                                        </td>
                                     </tr>
                                 }
-                                @if (!Model.UpcomingDeadlines.Any())
+                                @if (Model.UpcomingDeadlines.Count == 0)
                                 {
-                                    <tr class="admin-empty-state">
+                                    <tr class="empty-row">
                                         <td colspan="3">No open scholarships with an upcoming deadline.</td>
                                     </tr>
                                 }
@@ -132,3 +138,7 @@
         </div>
     </div>
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin/admin.css" asp-append-version="true" />
+}
