@@ -4,12 +4,15 @@
     ViewData["Title"] = "Application Queue";
 }
 
-@* OWNER: Member B. Styling is deliberately minimal — see officer.css. *@
+@* OWNER: Member B. The page header, filter bar and table headers come from the
+   shared theme in site.css — see officer.css for what is officer-only. *@
 
 <div class="officer-page">
 
-    <h1>Application Queue</h1>
-    <p class="text-muted">@Model.Items.Count application(s) match your filters.</p>
+    <div class="page-header">
+        <h1>Application queue</h1>
+        <p class="page-subtitle">@Model.Items.Count application(s) match your filters.</p>
+    </div>
 
     <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
 
@@ -69,7 +72,7 @@
     else
     {
         <div class="table-responsive">
-            <table class="table queue-table">
+            <table class="table align-middle data-table queue-table">
                 <thead>
                     <tr>
                         <th>Student</th>

@@ -42,9 +42,6 @@ public class DocumentStorageService
         _bucketName = string.IsNullOrWhiteSpace(name) ? null : name.Trim();
     }
 
-    // True when we are storing documents in S3 rather than on this machine.
-    public bool UsingS3 => _bucketName is not null;
-
     // Saves an uploaded file and returns the value to store in
     // ApplicationDocument.StoragePath — an S3 object key, or a relative path.
     public async Task<string> SaveAsync(int applicationId, string storedFileName, Stream content)
