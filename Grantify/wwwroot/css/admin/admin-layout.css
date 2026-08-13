@@ -20,7 +20,7 @@
     overflow: hidden;
 }
 
-.admin-card .card-body {
+.admin-card-flush .card-body {
     padding: 0;
 }
 
@@ -81,4 +81,24 @@
     display: inline-flex;
     align-items: center;
     gap: .4rem;
+}
+
+/* Analytics stat cards */
+.stat-card {
+    border: 1px solid rgba(0, 0, 0, .08);
+    border-radius: .75rem;
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #212529;
+}
+
+.stat-card .stat-label {
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #6c757d;
 }

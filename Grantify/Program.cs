@@ -74,6 +74,7 @@ builder.Services.AddScoped<InstitutionService>();
 builder.Services.AddScoped<IntakePeriodService>();
 builder.Services.AddScoped<AdminUserService>();
 builder.Services.AddScoped<ScholarshipAdminService>();
+builder.Services.AddScoped<AnalyticsService>();
 
 var app = builder.Build();
 

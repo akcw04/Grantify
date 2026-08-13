@@ -32,7 +32,7 @@ public class IndexModel : PageModel
         if (User.Identity?.IsAuthenticated == true)
         {
             if (User.IsInRole("Officer")) return RedirectToPage("/Officer/Index");
-            if (User.IsInRole("Admin")) return RedirectToPage("/Admin/Index");
+            if (User.IsInRole("Admin")) return RedirectToPage("/Admin/Analytics/Index");
             if (User.IsInRole("Student")) return RedirectToPage("/Student/Index");
         }
 
