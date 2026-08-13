@@ -5,13 +5,15 @@
 }
 
 @* OWNER: Member A (Student role). Build all student pages inside Pages/Student/.
-   STYLING NOTE: deliberately minimal - spacing and colour only, close to plain
-   Bootstrap, matching the Officer pages. *@
+   STYLING NOTE: the shared theme in site.css provides the page header and the
+   stat tiles, so this page only says WHAT to show. *@
 
 <div class="student-page">
 
-    <h1>Student Dashboard</h1>
-    <p class="text-muted">Welcome, @User.Identity?.Name.</p>
+    <div class="page-header">
+        <h1>Student dashboard</h1>
+        <p class="page-subtitle">Welcome, @User.Identity?.Name.</p>
+    </div>
 
     <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
 
@@ -59,23 +61,25 @@
         <div class="col-lg-7">
             <div class="card h-100">
                 <div class="card-body">
-                    <h2 class="h6">Recent applications</h2>
+                    <h2 class="section-title">Recent applications</h2>
 
                     @if (Model.Recent.Count == 0)
                     {
-                        <p class="text-muted small mb-0">Nothing yet.</p>
+                        <p class="cell-sub mb-0">Nothing yet.</p>
                     }
                     else
                     {
                         <ul class="list-unstyled mb-0">
                             @foreach (var app in Model.Recent)
                             {
-                                <li class="d-flex justify-content-between border-bottom py-2">
+                                <li class="d-flex justify-content-between align-items-start border-bottom py-2">
                                     <div>
                                         <a asp-page="Apply" asp-route-id="@app.Id">@app.Scholarship?.Name</a>
-                                        <div class="small text-muted">@app.SubmittedOn.ToLocalTime().ToString("dd MMM yyyy")</div>
+                                        <div class="cell-sub">@app.SubmittedOn.ToLocalTime().ToString("dd MMM yyyy")</div>
                                     </div>
-                                    <span class="small">@app.Status</span>
+                                    @* The shared badge, so a status looks the same here as it
+                                       does on the officer's queue. *@
+                                    <partial name="_ApplicationStatusBadge" model="app.Status" />
                                 </li>
                             }
                         </ul>
@@ -87,7 +91,7 @@
         <div class="col-lg-5">
             <div class="card h-100">
                 <div class="card-body">
-                    <h2 class="h6">Next steps</h2>
+                    <h2 class="section-title">Next steps</h2>
                     <div class="d-grid gap-2">
                         <a asp-page="Profile" class="btn btn-outline-primary btn-sm">Update my profile</a>
                         <a asp-page="Scholarships" class="btn btn-primary btn-sm">Find scholarships</a>

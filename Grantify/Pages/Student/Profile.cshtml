@@ -5,14 +5,16 @@
 }
 
 @* OWNER: Member A (Student role). #1 - profile.
-   Styling kept close to plain Bootstrap, same approach as the Officer pages. *@
+   The page header and card styling come from the shared theme in site.css. *@
 
 <div class="student-page">
 
-    <h1>My Profile</h1>
-    <p class="text-muted">
-        These details are what the eligibility check compares against each scholarship's rules.
-    </p>
+    <div class="page-header">
+        <h1>My profile</h1>
+        <p class="page-subtitle">
+            These details are what the eligibility check compares against each scholarship's rules.
+        </p>
+    </div>
 
     <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
 
@@ -31,7 +33,7 @@
 
                 <div class="card mb-3">
                     <div class="card-body">
-                        <h2 class="h5">Personal</h2>
+                        <h2 class="section-title">Personal</h2>
 
                         <div class="mb-3">
                             <label asp-for="Input.FullName" class="form-label"></label>
@@ -43,7 +45,7 @@
 
                 <div class="card mb-3">
                     <div class="card-body">
-                        <h2 class="h5">Academic</h2>
+                        <h2 class="section-title">Academic</h2>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -68,7 +70,7 @@
 
                 <div class="card mb-3">
                     <div class="card-body">
-                        <h2 class="h5">Household</h2>
+                        <h2 class="section-title">Household</h2>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -89,8 +91,8 @@
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-body">
-                    <h2 class="h6">How the check works</h2>
-                    <ol class="small text-muted mb-0">
+                    <h2 class="section-title">How the check works</h2>
+                    <ol class="cell-sub mb-0">
                         <li>Each scholarship publishes a minimum CGPA and, sometimes, an income limit.</li>
                         <li>Your details above are compared against those rules.</li>
                         <li>You are told whether you qualify, and the reason for anything you do not meet.</li>

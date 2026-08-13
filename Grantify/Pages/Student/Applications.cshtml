@@ -8,8 +8,10 @@
 
 <div class="student-page">
 
-    <h1>My Applications</h1>
-    <p class="text-muted">Where each of your applications has got to.</p>
+    <div class="page-header">
+        <h1>My applications</h1>
+        <p class="page-subtitle">Where each of your applications has got to.</p>
+    </div>
 
     <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
 
@@ -23,7 +25,7 @@
     else
     {
         <div class="table-responsive">
-            <table class="table align-middle">
+            <table class="table align-middle data-table">
                 <thead>
                     <tr>
                         <th>Scholarship</th>
@@ -45,35 +47,18 @@
                                 <strong>@app.Scholarship?.Name</strong>
                                 <div class="small text-muted">@app.Scholarship?.Provider</div>
                             </td>
-                            <td class="small">@app.SubmittedOn.ToLocalTime().ToString("dd MMM yyyy")</td>
-                            <td class="small">
-                                @verified / @app.Documents.Count verified
+                            <td class="text-nowrap">@app.SubmittedOn.ToLocalTime().ToString("dd MMM yyyy")</td>
+                            <td>
+                                <span class="cell-sub">@verified / @app.Documents.Count verified</span>
                                 @if (flagged > 0)
                                 {
                                     <div><span class="badge bg-danger">@flagged flagged</span></div>
                                 }
                             </td>
-                            <td>
-                                @switch (app.Status)
-                                {
-                                    case ApplicationStatus.Approved:
-                                        <span class="badge bg-success">Approved</span>
-                                        break;
-                                    case ApplicationStatus.Rejected:
-                                        <span class="badge bg-danger">Rejected</span>
-                                        break;
-                                    case ApplicationStatus.Shortlisted:
-                                        <span class="badge bg-primary">Shortlisted</span>
-                                        break;
-                                    case ApplicationStatus.UnderReview:
-                                        <span class="badge bg-warning text-dark">Under review</span>
-                                        break;
-                                    default:
-                                        <span class="badge bg-secondary">Submitted</span>
-                                        break;
-                                }
-                            </td>
-                            <td class="small">@(app.Score is null ? "-" : app.Score.ToString())</td>
+                            @* The shared badge decides the colour and the wording, so a
+                               status reads the same here as on the officer's queue. *@
+                            <td><partial name="_ApplicationStatusBadge" model="app.Status" /></td>
+                            <td>@(app.Score?.ToString() ?? "—")</td>
                             <td class="text-end">
                                 <a asp-page="Apply" asp-route-id="@app.Id" class="btn btn-outline-primary btn-sm">Open</a>
                             </td>

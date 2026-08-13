@@ -3,14 +3,21 @@
 @{
     ViewData["Title"] = "My Application";
     var app = Model.Application!;
+
+    // Once a decision has been made the application is a record, not a form.
+    // The upload box is hidden below; StudentService refuses it as well, because
+    // hiding a control is not the same as preventing the action.
+    var isFinished = app.Status is ApplicationStatus.Approved or ApplicationStatus.Rejected;
 }
 
 @* OWNER: Member A (Student role). #3 - application detail and document upload. *@
 
 <div class="student-page">
 
-    <h1>Application</h1>
-    <p class="text-muted">@app.Scholarship?.Name</p>
+    <div class="page-header">
+        <h1>My application</h1>
+        <p class="page-subtitle">@app.Scholarship?.Name</p>
+    </div>
 
     <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
 
@@ -20,8 +27,8 @@
         <div class="col-lg-5">
             <div class="card">
                 <div class="card-body">
-                    <h2 class="h6">Details</h2>
-                    <dl class="row small mb-0">
+                    <h2 class="section-title">Details</h2>
+                    <dl class="row mb-0">
                         <dt class="col-5">Scholarship</dt>
                         <dd class="col-7">@app.Scholarship?.Name</dd>
 
@@ -32,7 +39,7 @@
                         <dd class="col-7">@app.SubmittedOn.ToLocalTime().ToString("dd MMM yyyy")</dd>
 
                         <dt class="col-5">Status</dt>
-                        <dd class="col-7"><strong>@app.Status</strong></dd>
+                        <dd class="col-7"><partial name="_ApplicationStatusBadge" model="app.Status" /></dd>
 
                         @if (app.Score is not null)
                         {
@@ -55,16 +62,16 @@
         <div class="col-lg-7">
             <div class="card">
                 <div class="card-body">
-                    <h2 class="h6">Supporting documents</h2>
+                    <h2 class="section-title">Supporting documents</h2>
 
                     @if (app.Documents.Count == 0)
                     {
-                        <p class="text-muted small">Nothing uploaded yet.</p>
+                        <p class="cell-sub">Nothing uploaded yet.</p>
                     }
                     else
                     {
                         <div class="table-responsive">
-                            <table class="table table-sm align-middle">
+                            <table class="table table-sm align-middle data-table">
                                 <thead>
                                     <tr>
                                         <th>File</th>
@@ -78,24 +85,15 @@
                                     {
                                         <tr>
                                             <td>@doc.FileName</td>
-                                            <td class="small">@doc.UploadedOn.ToLocalTime().ToString("dd MMM yyyy")</td>
+                                            <td class="text-nowrap">@doc.UploadedOn.ToLocalTime().ToString("dd MMM yyyy")</td>
                                             <td>
-                                                @if (doc.Status == DocumentStatus.Verified)
-                                                {
-                                                    <span class="badge bg-success">Verified</span>
-                                                }
-                                                else if (doc.Status == DocumentStatus.Flagged)
-                                                {
-                                                    <span class="badge bg-danger">Flagged</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-secondary">Pending</span>
-                                                }
+                                                @* The shared badge, so "Verified" looks the same
+                                                   here as it does on the officer's pages. *@
+                                                <partial name="_DocumentStatusBadge" model="doc.Status" />
 
                                                 @if (!string.IsNullOrWhiteSpace(doc.OfficerNote))
                                                 {
-                                                    <div class="small text-muted">@doc.OfficerNote</div>
+                                                    <div class="cell-sub">@doc.OfficerNote</div>
                                                 }
                                             </td>
                                             <td class="text-end">
@@ -111,14 +109,25 @@
 
                     <hr />
 
-                    <form method="post" asp-page-handler="Upload" enctype="multipart/form-data">
-                        <label asp-for="Upload" class="form-label">Add a document</label>
-                        <div class="input-group">
-                            <input asp-for="Upload" class="form-control" type="file" accept=".pdf,.jpg,.jpeg,.png" />
-                            <button type="submit" class="btn btn-primary">Upload</button>
-                        </div>
-                        <div class="form-text">PDF, JPG or PNG. Maximum 5 MB.</div>
-                    </form>
+                    @* Nothing more can be added once a decision has been made — the
+                       officer has already judged this application on what was here. *@
+                    @if (isFinished)
+                    {
+                        <p class="cell-sub mb-0">
+                            This application has been decided, so no more documents can be added.
+                        </p>
+                    }
+                    else
+                    {
+                        <form method="post" asp-page-handler="Upload" enctype="multipart/form-data">
+                            <label asp-for="Upload" class="form-label">Add a document</label>
+                            <div class="input-group">
+                                <input asp-for="Upload" class="form-control" type="file" accept=".pdf,.jpg,.jpeg,.png" />
+                                <button type="submit" class="btn btn-primary">Upload</button>
+                            </div>
+                            <div class="form-text">PDF, JPG or PNG. Maximum 5 MB.</div>
+                        </form>
+                    }
                 </div>
             </div>
         </div>

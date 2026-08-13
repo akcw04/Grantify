@@ -8,10 +8,12 @@
 
 <div class="student-page">
 
-    <h1>Find Scholarships</h1>
-    <p class="text-muted">
-        Every scholarship below is checked against your profile, with the reason for anything you do not meet.
-    </p>
+    <div class="page-header">
+        <h1>Find scholarships</h1>
+        <p class="page-subtitle">
+            Every scholarship below is checked against your profile, with the reason for anything you do not meet.
+        </p>
+    </div>
 
     <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
 
@@ -23,8 +25,9 @@
         </div>
     }
 
-    @* ---------- Search ---------- *@
-    <form method="get" class="row g-2 align-items-end mb-4">
+    @* ---------- Search ----------
+       The same filter bar the officer queue uses, from the shared theme. *@
+    <form method="get" class="filter-bar row g-2 align-items-end mb-4">
         <div class="col-md-6">
             <label asp-for="Search" class="form-label">Search</label>
             <input asp-for="Search" class="form-control" placeholder="Name or provider" />
@@ -41,7 +44,7 @@
         </div>
     </form>
 
-    <p class="text-muted small">@Model.Items.Count scholarship(s) found.</p>
+    <p class="cell-sub">@Model.Items.Count scholarship(s) found.</p>
 
     @if (Model.Items.Count == 0)
     {
@@ -65,8 +68,8 @@
                             <span class="badge bg-danger align-self-start mb-2">Not eligible</span>
                         }
 
-                        <h2 class="h6 mb-1">@item.Scholarship.Name</h2>
-                        <div class="text-muted small mb-2">@item.Scholarship.Provider</div>
+                        <h2 class="section-title mb-1">@item.Scholarship.Name</h2>
+                        <div class="cell-sub mb-2">@item.Scholarship.Provider</div>
 
                         <p class="small mb-2">@item.Scholarship.Description</p>
 
