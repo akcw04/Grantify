@@ -25,4 +25,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
     // Messages shown to a student when their application changes (added by Member A).
     public DbSet<Notification> Notifications => Set<Notification>();
+
+    public DbSet<ScholarshipCategory> ScholarshipCategories => Set<ScholarshipCategory>();
+    public DbSet<Institution> Institutions => Set<Institution>();
+    public DbSet<IntakePeriod> IntakePeriods => Set<IntakePeriod>();
 }

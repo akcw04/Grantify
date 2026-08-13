@@ -1,0 +1,32 @@
+@page "{id:int}"
+@model Grantify.Pages.Admin.IntakePeriods.DetailsModel
+@{
+    ViewData["Title"] = "Intake Period Details";
+}
+
+<h1>Intake Period Details</h1>
+
+@if (Model.IntakePeriod is null)
+{
+    <div class="alert alert-warning">This intake period no longer exists.</div>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-2">Period Name</dt>
+        <dd class="col-sm-10">@Model.IntakePeriod.PeriodName</dd>
+
+        <dt class="col-sm-2">Start Date</dt>
+        <dd class="col-sm-10">@Model.IntakePeriod.StartDate.ToString("d")</dd>
+
+        <dt class="col-sm-2">End Date</dt>
+        <dd class="col-sm-10">@Model.IntakePeriod.EndDate.ToString("d")</dd>
+    </dl>
+
+    <a asp-page="Edit" asp-route-id="@Model.IntakePeriod.Id" class="btn btn-primary">Edit</a>
+}
+<a asp-page="Index" class="btn btn-outline-secondary">Back to list</a>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin/admin.css" asp-append-version="true" />
+}
