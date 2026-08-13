@@ -23,6 +23,15 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
 
+// How often a signed-in browser's cookie is re-checked against the database.
+// The default is 30 minutes; a deactivated user's existing session would stay
+// signed in for up to that long otherwise. One minute keeps Admin's "deactivate"
+// button effective almost immediately without checking the database every request.
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+{
+    options.ValidationInterval = TimeSpan.FromMinutes(1);
+});
+
 // ---------- 3. Who can open which pages ----------
 // Each folder under Pages/ belongs to one role.
 // Example: only logged-in users with the "Student" role can open Pages/Student/*.
@@ -58,6 +67,13 @@ builder.Services.AddScoped<DocumentStorageService>();
 builder.Services.AddScoped<DecisionNotifier>();
 builder.Services.AddScoped<OfficerService>();   // Member B — Officer role
 builder.Services.AddScoped<StudentService>();   // Member A — Student role
+
+// Master data and account management (Member C — Admin role).
+builder.Services.AddScoped<ScholarshipCategoryService>();
+builder.Services.AddScoped<InstitutionService>();
+builder.Services.AddScoped<IntakePeriodService>();
+builder.Services.AddScoped<AdminUserService>();
+builder.Services.AddScoped<ScholarshipAdminService>();
 
 var app = builder.Build();
 

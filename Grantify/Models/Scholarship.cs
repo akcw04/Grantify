@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Grantify.Models;
@@ -41,4 +42,22 @@ public class Scholarship
 
     // All applications sent in for this scholarship.
     public List<ScholarshipApplication> Applications { get; set; } = new();
+
+    // ----- Master data links (optional, added by Member C) -----
+
+    public int? InstitutionId { get; set; }
+    public Institution? Institution { get; set; }
+
+    public int? ScholarshipCategoryId { get; set; }
+    public ScholarshipCategory? Category { get; set; }
+
+    public int? IntakePeriodId { get; set; }
+    public IntakePeriod? IntakePeriod { get; set; }
+
+    // Draft while unpublished, Closed once the deadline has passed, otherwise Published.
+    [NotMapped]
+    public ScholarshipStatus Status =>
+        !IsPublished ? ScholarshipStatus.Draft :
+        Deadline.Date < DateTime.Today ? ScholarshipStatus.Closed :
+        ScholarshipStatus.Published;
 }
