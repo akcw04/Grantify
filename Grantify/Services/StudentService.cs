@@ -116,27 +116,6 @@ public class StudentService
         return items;
     }
 
-    public async Task<CatalogueItem?> GetScholarshipAsync(string userId, int scholarshipId)
-    {
-        var scholarship = await _db.Scholarships
-            .FirstOrDefaultAsync(s => s.Id == scholarshipId && s.IsPublished);
-
-        if (scholarship is null) return null;
-
-        var profile = await GetOrCreateProfileAsync(userId);
-        var daysLeft = (scholarship.Deadline.Date - DateTime.Today).Days;
-
-        return new CatalogueItem
-        {
-            Scholarship = scholarship,
-            Eligibility = _eligibility.Check(profile, scholarship),
-            IsOpen = daysLeft >= 0,
-            DaysLeft = daysLeft,
-            MyApplication = await _db.ScholarshipApplications
-                .FirstOrDefaultAsync(a => a.ScholarshipId == scholarshipId && a.StudentUserId == userId)
-        };
-    }
-
     // ---------- #3 Apply ----------
 
     // What happened when the student pressed Apply.
@@ -198,6 +177,14 @@ public class StudentService
 
         if (application is null)
             return new ApplyResult(false, "Application not found.");
+
+        // A decided application is a record, not a form. The page hides the
+        // upload box once a decision is in, but the browser is never trusted on
+        // its own — otherwise a student could add evidence to an application an
+        // officer has already judged, and the audit trail would stop matching
+        // what was actually reviewed.
+        if (application.Status is ApplicationStatus.Approved or ApplicationStatus.Rejected)
+            return new ApplyResult(false, "This application has been decided, so no more documents can be added.");
 
         if (file is null || file.Length == 0)
             return new ApplyResult(false, "Choose a file first.");

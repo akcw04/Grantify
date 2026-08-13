@@ -55,8 +55,12 @@ public class ApplyModel : StudentPageModel
 
         // On the deployed site the file lives in Amazon S3, so we hand back a
         // short-lived private link. Locally it is still a file on this machine.
+        //
+        // We send the real content type, the same as the officer page does, so a
+        // student re-opening their own transcript sees it in a tab instead of
+        // being made to download an unnamed file.
         return file.IsRemote
             ? Redirect(file.Url)
-            : PhysicalFile(file.Url, "application/octet-stream", file.FileName);
+            : PhysicalFile(file.Url, file.ContentType, file.FileName);
     }
 }
