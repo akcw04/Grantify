@@ -38,8 +38,6 @@ public class DecisionNotifier
         _topicArn = string.IsNullOrWhiteSpace(arn) ? null : arn.Trim();
     }
 
-    public bool IsConfigured => _topicArn is not null;
-
     // Announces one decision.
     //
     // NEVER throws. A notification failing must not undo an approval that is

@@ -5,14 +5,15 @@
 }
 
 @* OWNER: Member B (Officer role). Build all officer pages inside Pages/Officer/.
-   STYLING NOTE: deliberately minimal — spacing and colour only, close to plain
-   Bootstrap. When the team agrees a shared theme in site.css, officer.css gets
-   trimmed rather than rewritten. *@
+   STYLING NOTE: the shared theme in site.css now provides the page header, the
+   stat tiles and the table headers, so this page only says WHAT to show. *@
 
 <div class="officer-page">
 
-    <h1>Scholarship Officer Dashboard</h1>
-    <p class="text-muted">Welcome, @User.Identity?.Name. Here is what is waiting for you.</p>
+    <div class="page-header">
+        <h1>Scholarship officer dashboard</h1>
+        <p class="page-subtitle">Welcome, @User.Identity?.Name. Here is what is waiting for you.</p>
+    </div>
 
     <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
 
@@ -70,7 +71,7 @@
     </div>
 
     @* ---------- Shortcut list ---------- *@
-    <h2 class="h5">Waiting longest</h2>
+    <h2 class="section-title">Waiting longest</h2>
     @if (Model.NextUp.Count == 0)
     {
         <p class="text-muted">Nothing is waiting for review right now.</p>
@@ -89,7 +90,7 @@
             </p>
         }
         <div class="table-responsive">
-            <table class="table queue-table">
+            <table class="table align-middle data-table queue-table">
                 <thead>
                     <tr>
                         <th>Student</th>

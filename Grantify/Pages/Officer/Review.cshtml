@@ -19,13 +19,14 @@
                          && application.Scholarship.Deadline < DateTime.Today;
 }
 
-@* OWNER: Member B. Styling is deliberately minimal — see officer.css. *@
+@* OWNER: Member B. The page header and cards come from the shared theme in
+   site.css — see officer.css for what is officer-only. *@
 
 <div class="officer-page">
 
-    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-2">
         <div>
-            <h1 class="mb-1">@(application.Student?.FullName ?? "(unknown student)")</h1>
+            <h1>@(application.Student?.FullName ?? "(unknown student)")</h1>
             <div class="cell-sub">
                 Applying for <strong>@(application.Scholarship?.Name ?? "(deleted scholarship)")</strong>
                 &middot; submitted @application.SubmittedOn.ToLocalTime().ToString("dd MMM yyyy")
