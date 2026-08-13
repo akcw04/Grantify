@@ -1,0 +1,134 @@
+@page
+@model Grantify.Pages.Admin.Analytics.IndexModel
+@{
+    ViewData["Title"] = "Analytics";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin/admin-layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin/admin.css" asp-append-version="true" />
+}
+
+<div class="admin-dashboard">
+    <div class="admin-toolbar mb-3">
+        <h1 class="h3 mb-1">Analytics &amp; Reports</h1>
+        <p class="text-muted mb-0">A snapshot of scholarships, users and application outcomes.</p>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="stat-value">@Model.Summary.TotalActiveScholarships</div>
+                    <div class="stat-label">Active Scholarships</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="stat-value">@Model.Summary.TotalRegisteredUsers</div>
+                    <div class="stat-label">Registered Users</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="stat-value">@Model.Summary.TotalApplications</div>
+                    <div class="stat-label">Applications Submitted</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card stat-card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="stat-value">@Model.Summary.ApprovalRatePercent.ToString("0.#")%</div>
+                    <div class="stat-label">Approval Rate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div class="card admin-card admin-card-flush shadow-sm h-100">
+                <div class="card-header bg-white border-bottom">
+                    <h2 class="h5 mb-0">Application Status by Scholarship</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Scholarship</th>
+                                    <th class="text-end">Pending</th>
+                                    <th class="text-end">Approved</th>
+                                    <th class="text-end">Rejected</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in Model.StatusBreakdown)
+                                {
+                                    <tr>
+                                        <td>@row.ScholarshipName</td>
+                                        <td class="text-end">@row.Pending</td>
+                                        <td class="text-end">@row.Approved</td>
+                                        <td class="text-end">@row.Rejected</td>
+                                        <td class="text-end fw-semibold">@row.Total</td>
+                                    </tr>
+                                }
+                                @if (!Model.StatusBreakdown.Any())
+                                {
+                                    <tr class="admin-empty-state">
+                                        <td colspan="5">No scholarships yet.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card admin-card admin-card-flush shadow-sm h-100">
+                <div class="card-header bg-white border-bottom">
+                    <h2 class="h5 mb-0">Upcoming Deadlines</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Scholarship</th>
+                                    <th class="text-end">Deadline</th>
+                                    <th class="text-end">Days Left</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var scholarship in Model.UpcomingDeadlines)
+                                {
+                                    var daysLeft = (scholarship.Deadline.Date - DateTime.Today).Days;
+                                    var badgeClass = daysLeft <= 7 ? "text-bg-danger" : daysLeft <= 30 ? "text-bg-warning" : "text-bg-secondary";
+                                    <tr>
+                                        <td>@scholarship.Name</td>
+                                        <td class="text-end">@scholarship.Deadline.ToString("d")</td>
+                                        <td class="text-end"><span class="badge rounded-pill @badgeClass">@daysLeft d</span></td>
+                                    </tr>
+                                }
+                                @if (!Model.UpcomingDeadlines.Any())
+                                {
+                                    <tr class="admin-empty-state">
+                                        <td colspan="3">No open scholarships with an upcoming deadline.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

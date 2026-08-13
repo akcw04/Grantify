@@ -59,6 +59,14 @@ builder.Services.AddScoped<DecisionNotifier>();
 builder.Services.AddScoped<OfficerService>();   // Member B — Officer role
 builder.Services.AddScoped<StudentService>();   // Member A — Student role
 
+// Master data and account management (Member C — Admin role).
+builder.Services.AddScoped<ScholarshipCategoryService>();
+builder.Services.AddScoped<InstitutionService>();
+builder.Services.AddScoped<IntakePeriodService>();
+builder.Services.AddScoped<AdminUserService>();
+builder.Services.AddScoped<ScholarshipAdminService>();
+builder.Services.AddScoped<AnalyticsService>();
+
 var app = builder.Build();
 
 // ---------- 5. Prepare the database on startup ----------

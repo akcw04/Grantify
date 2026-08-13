@@ -1,0 +1,32 @@
+@page "{id:int}"
+@model Grantify.Pages.Admin.Institutions.DetailsModel
+@{
+    ViewData["Title"] = "Institution Details";
+}
+
+<h1>Institution Details</h1>
+
+@if (Model.Institution is null)
+{
+    <div class="alert alert-warning">This institution no longer exists.</div>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-2">Name</dt>
+        <dd class="col-sm-10">@Model.Institution.Name</dd>
+
+        <dt class="col-sm-2">Location</dt>
+        <dd class="col-sm-10">@Model.Institution.Location</dd>
+
+        <dt class="col-sm-2">Contact Email</dt>
+        <dd class="col-sm-10">@Model.Institution.ContactEmail</dd>
+    </dl>
+
+    <a asp-page="Edit" asp-route-id="@Model.Institution.Id" class="btn btn-primary">Edit</a>
+}
+<a asp-page="Index" class="btn btn-outline-secondary">Back to list</a>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin/admin.css" asp-append-version="true" />
+}
