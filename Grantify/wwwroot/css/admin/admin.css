@@ -1,11 +1,45 @@
 /* OWNER: Member C. Styles used ONLY on Admin pages.
-   This file loads on top of the shared site.css — only add here,
-   do not repeat or fight the shared theme.
-   How to load it on your page: see the @section Styles block
-   at the bottom of Pages/Admin/Index.cshtml. */
+   This file loads on top of the shared site.css.
 
-/* Example: admin pages get a dark red accent under the page title. */
-h1 {
-    border-bottom: 3px solid #842029;
-    padding-bottom: .25rem;
+   DELIBERATELY SMALL. The cards, tables, stat tiles and empty states this
+   module used to define itself are now in the shared theme, so Admin looks the
+   same as Student and Officer. What is left here is only what no other role
+   has: the toolbar with a "New ..." button, and the small icon buttons in the
+   Actions column of a master-data table.
+
+   (This file used to style h1 globally with a dark red underline, which leaked
+   onto every page that loaded it and had to be cancelled again elsewhere. Page
+   titles now come from .page-header in site.css, like every other role.)
+
+   Anything Bootstrap or site.css already provides is NOT redefined here. */
+
+/* ---------- Toolbar: page title on the left, "New ..." button on the right ---------- */
+.admin-page .admin-toolbar {
+    gap: 1rem;
+}
+
+.admin-page .admin-toolbar .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+.admin-page .admin-toolbar .btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ---------- Icon buttons in the Actions column ----------
+   Details / Edit / Delete are icons rather than words, because a master-data
+   table has three of them on every row and the words crowd the data out. Each
+   one still carries a title and an aria-label for screen readers. */
+.admin-page .admin-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-page .admin-actions svg {
+    width: 14px;
+    height: 14px;
 }

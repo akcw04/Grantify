@@ -1,0 +1,22 @@
+@model (string? Message, bool IsError)
+
+@* SHARED PARTIAL — announce in the group chat before changing.
+
+   The green "it worked" / red "it failed" bar shown after any action, in every
+   role. There used to be one copy of this per role, and they had drifted: the
+   Officer one could be dismissed and the other two could not.
+
+   Use it on any page with:
+   <partial name="_StatusMessage" model="(Model.StatusMessage, Model.StatusIsError)" />
+
+   The message itself comes from the TempData properties on StudentPageModel,
+   OfficerPageModel or AdminPageModel, so it survives the redirect after a POST
+   and is shown exactly once. *@
+
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <div class="alert @(Model.IsError ? "alert-danger" : "alert-success") alert-dismissible fade show" role="alert">
+        @Model.Message
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}

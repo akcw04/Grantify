@@ -1,0 +1,21 @@
+@model Grantify.Models.ScholarshipStatus
+
+@* SHARED PARTIAL — announce in the group chat before changing.
+
+   Shows whether a scholarship is a draft, open for applications, or closed.
+   Only the Admin listing uses it today, but it is here rather than in
+   Pages/Admin/ so it matches the other two badge partials and so a student page
+   can show the same label without inventing its own colours.
+
+   Use it with:  <partial name="_ScholarshipStatusBadge" model="scholarship.Status" /> *@
+
+@{
+    var (cssClass, label) = Model switch
+    {
+        ScholarshipStatus.Published => ("bg-success", "Published"),
+        ScholarshipStatus.Closed => ("bg-dark", "Closed"),
+        _ => ("bg-secondary", "Draft")
+    };
+}
+
+<span class="badge @cssClass">@label</span>

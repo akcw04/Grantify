@@ -1,8 +1,11 @@
 @model Grantify.Models.DocumentStatus
 
-@* OWNER: Member B. Shows one document status as a coloured badge.
-   Same idea as _ApplicationStatusBadge: the colour lives in one place, and it
-   matches the badges Member A uses on the student pages.
+@* SHARED PARTIAL — announce in the group chat before changing.
+
+   Shows one document status as a coloured badge. Same idea as
+   _ApplicationStatusBadge: the colour and the wording live in one place, so a
+   student and an officer describe the same file the same way.
+
    Use it with:  <partial name="_DocumentStatusBadge" model="document.Status" /> *@
 
 @{

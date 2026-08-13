@@ -1,102 +1,118 @@
-﻿<!DOCTYPE html>
+@{
+    // Which page is being shown, e.g. "/Student/Applications". Used below to
+    // underline the nav link for the section the user is currently in.
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
+
+    // A link is "current" when it points at the page being shown, or when the
+    // page being shown sits under it. The optional section prefix is what keeps
+    // "Institutions" underlined while you are on Institutions/Edit, without
+    // making "Dashboard" light up on every page in the role.
+    string NavClass(string page, string? section = null)
+    {
+        var isCurrent = currentPage.Equals(page, StringComparison.OrdinalIgnoreCase)
+            || (section is not null && currentPage.StartsWith(section, StringComparison.OrdinalIgnoreCase));
+
+        return isCurrent ? "nav-link active" : "nav-link";
+    }
+
+    var isSignedIn = User.Identity?.IsAuthenticated == true;
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Grantify</title>
-    <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Grantify.styles.css" asp-append-version="true" />
     @* Pages add their own role css here with an @section Styles block. *@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="@(User.IsInRole("Admin") ? "/Admin/Analytics/Index" : "/Index")">Grantify</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                @* For a VISITOR the brand is the home link — it replaced the separate
+                   "Home" item that went to the same page.
+
+                   Once you are signed in it is just the name of the system, not a
+                   link. Every role already has a "Dashboard" item in the nav, so a
+                   clickable brand was a second door to the same room, and the one
+                   that gave no hint of where it led. *@
+                @if (isSignedIn)
+                {
+                    <span class="navbar-brand navbar-brand-static">
+                        <span class="brand-mark" aria-hidden="true">G</span>
+                        Grantify
+                    </span>
+                }
+                else
+                {
+                    <a class="navbar-brand" asp-area="" asp-page="/Index">
+                        <span class="brand-mark" aria-hidden="true">G</span>
+                        Grantify
+                    </a>
+                }
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        @* "Home" is the public scholarship list, so it is only
-                           useful to a visitor. Signed-in users start at their own
-                           dashboard instead — showing both just asks them which
-                           one is the real starting point. *@
-                        @if (User.Identity?.IsAuthenticated != true)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                            </li>
-                        }
-                        @* Each role only sees the link to its own area. *@
+                        @* Each role only sees the links to its own area. *@
                         @if (User.IsInRole("Student"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Student/Index">My Dashboard</a>
+                                <a class="@NavClass("/Student/Index")" asp-area="" asp-page="/Student/Index">Dashboard</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Student/Scholarships">Find Scholarships</a>
+                                <a class="@NavClass("/Student/Scholarships")" asp-area="" asp-page="/Student/Scholarships">Find Scholarships</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Student/Applications">My Applications</a>
+                                @* Apply is the detail page of one application, so it keeps
+                                   "My Applications" underlined. *@
+                                <a class="@NavClass("/Student/Applications", "/Student/Apply")" asp-area="" asp-page="/Student/Applications">My Applications</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Student/Notifications">Notifications</a>
+                                <a class="@NavClass("/Student/Notifications")" asp-area="" asp-page="/Student/Notifications">Notifications</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Student/Profile">My Profile</a>
+                                <a class="@NavClass("/Student/Profile")" asp-area="" asp-page="/Student/Profile">My Profile</a>
                             </li>
                         }
                         @if (User.IsInRole("Officer"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Officer/Index">Review</a>
+                                <a class="@NavClass("/Officer/Index")" asp-area="" asp-page="/Officer/Index">Dashboard</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Officer/Applications">Queue</a>
+                                @* Review is one application out of the queue, so it keeps
+                                   "Application Queue" underlined. *@
+                                <a class="@NavClass("/Officer/Applications", "/Officer/Review")" asp-area="" asp-page="/Officer/Applications">Application Queue</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Officer/Documents">Documents</a>
+                                <a class="@NavClass("/Officer/Documents")" asp-area="" asp-page="/Officer/Documents">Documents</a>
                             </li>
                         }
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Admin/Analytics/Index">Admin Dashboard</a>
+                                <a class="@NavClass("/Admin/Analytics/Index")" asp-area="" asp-page="/Admin/Analytics/Index">Dashboard</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Admin/Users/Index">Manage Users</a>
+                                <a class="@NavClass("/Admin/Users/Index", "/Admin/Users/")" asp-area="" asp-page="/Admin/Users/Index">Users</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Admin/Scholarships/Index">Manage Scholarships</a>
+                                <a class="@NavClass("/Admin/Scholarships/Index", "/Admin/Scholarships/")" asp-area="" asp-page="/Admin/Scholarships/Index">Scholarships</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Admin/ScholarshipCategories/Index">Categories</a>
+                                <a class="@NavClass("/Admin/ScholarshipCategories/Index", "/Admin/ScholarshipCategories/")" asp-area="" asp-page="/Admin/ScholarshipCategories/Index">Categories</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Admin/Institutions/Index">Institutions</a>
+                                <a class="@NavClass("/Admin/Institutions/Index", "/Admin/Institutions/")" asp-area="" asp-page="/Admin/Institutions/Index">Institutions</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Admin/IntakePeriods/Index">Intake Periods</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Admin/Users/Index">Manage Users</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Admin/Scholarships/Index">Manage Scholarships</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Admin/ScholarshipCategories/Index">Categories</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Admin/Institutions/Index">Institutions</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Admin/IntakePeriods/Index">Intake Periods</a>
+                                <a class="@NavClass("/Admin/IntakePeriods/Index", "/Admin/IntakePeriods/")" asp-area="" asp-page="/Admin/IntakePeriods/Index">Intake Periods</a>
                             </li>
                         }
                     </ul>
@@ -105,15 +121,17 @@
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Grantify - <a asp-area="" asp-page="/Privacy">Privacy</a>
+    <footer class="site-footer border-top">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; 2026 Grantify — scholarship application and review portal</span>
+            <a asp-area="" asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
 
