@@ -54,6 +54,11 @@ builder.Services.AddScoped<DocumentStorageService>();
 builder.Services.AddScoped<OfficerService>();   // Member B — Officer role
 builder.Services.AddScoped<StudentService>();   // Member A — Student role
 
+// Master data CRUD (Admin role).
+builder.Services.AddScoped<ScholarshipCategoryService>();
+builder.Services.AddScoped<InstitutionService>();
+builder.Services.AddScoped<IntakePeriodService>();
+
 var app = builder.Build();
 
 // ---------- 5. Prepare the database on startup ----------
