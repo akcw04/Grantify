@@ -36,11 +36,34 @@ public static class DbSeeder
         if (isDevelopment)
         {
             await CreateTestAccountsAsync(services, db);
-            await CreateSampleScholarshipsAsync(db);
+
+            // Demo scholarships and applications, so every dashboard has
+            // something to show the moment you press F5.
+            await DemoDataSeeder.SeedAsync(services, "Grantify@123");
         }
         else
         {
             await CreateConfiguredAccountsAsync(services);
+
+            // The DEPLOYED site only gets the demonstration data when asked.
+            // Two environment properties are needed, and the password must
+            // come from configuration — never from this repository, because
+            // these accounts can sign in to the public site.
+            var config = services.GetRequiredService<IConfiguration>();
+            if (string.Equals(config["Seed:DemoData"], "true", StringComparison.OrdinalIgnoreCase))
+            {
+                var demoPassword = config["Seed:DemoPassword"];
+                if (string.IsNullOrWhiteSpace(demoPassword))
+                {
+                    services.GetRequiredService<ILoggerFactory>().CreateLogger("DbSeeder").LogWarning(
+                        "Seed__DemoData is true but Seed__DemoPassword is not set, " +
+                        "so no demonstration data was seeded.");
+                }
+                else
+                {
+                    await DemoDataSeeder.SeedAsync(services, demoPassword);
+                }
+            }
         }
     }
 
@@ -217,46 +240,7 @@ public static class DbSeeder
         return user;
     }
 
-    // A few sample scholarships so list pages are not empty during development.
-    private static async Task CreateSampleScholarshipsAsync(AppDbContext db)
-    {
-        if (await db.Scholarships.AnyAsync())
-        {
-            return; // already seeded
-        }
-
-        db.Scholarships.AddRange(
-            new Scholarship
-            {
-                Name = "APU Merit Scholarship",
-                Provider = "Asia Pacific University",
-                Description = "For students with strong academic results.",
-                MinimumCgpa = 3.50m,
-                MaximumHouseholdIncome = null, // merit-based, income does not matter
-                Deadline = DateTime.Today.AddDays(60),
-                IsPublished = true
-            },
-            new Scholarship
-            {
-                Name = "B40 Financial Aid Grant",
-                Provider = "Ministry of Higher Education",
-                Description = "Support for students from lower-income households.",
-                MinimumCgpa = 2.50m,
-                MaximumHouseholdIncome = 4850m,
-                Deadline = DateTime.Today.AddDays(45),
-                IsPublished = true
-            },
-            new Scholarship
-            {
-                Name = "Tech Talent Bursary",
-                Provider = "TechCorp Malaysia",
-                Description = "For IT and engineering students. Draft — not visible to students yet.",
-                MinimumCgpa = 3.00m,
-                MaximumHouseholdIncome = 8000m,
-                Deadline = DateTime.Today.AddDays(90),
-                IsPublished = false // stays hidden until an admin publishes it
-            });
-
-        await db.SaveChangesAsync();
-    }
+    // Sample scholarships used to be created here; they now live in
+    // DemoDataSeeder together with the demo students and applications, so the
+    // deployed site can opt in to the same data set.
 }

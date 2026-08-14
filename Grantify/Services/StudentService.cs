@@ -106,7 +106,11 @@ public class StudentService
             items.Add(new CatalogueItem
             {
                 Scholarship = scholarship,
-                Eligibility = _eligibility.Check(profile, scholarship),
+                // CheckAsync = the screening microservice when configured, the
+                // local rules otherwise. One call per listed scholarship; with
+                // a handful of listings that is fine, and each call falls back
+                // locally on any failure so browsing never breaks.
+                Eligibility = await _eligibility.CheckAsync(profile, scholarship),
                 IsOpen = daysLeft >= 0,
                 DaysLeft = daysLeft,
                 MyApplication = myApplications.FirstOrDefault(a => a.ScholarshipId == scholarship.Id)

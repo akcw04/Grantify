@@ -19,20 +19,21 @@
         <div class="card">
             <div class="card-body p-4">
                 <form id="registerForm" method="post">
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"
-                         style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+                    @* Empty summaries are hidden by the shared validation css
+                       in site.css, so no inline style tricks are needed. *@
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                     <div class="mb-3">
                         <label asp-for="Input.FullName" class="form-label"></label>
                         <input asp-for="Input.FullName" class="form-control" autocomplete="name"
-                               aria-required="true" placeholder="Your full name" />
+                               aria-required="true" placeholder="e.g. Aisyah Binti Rahman" />
                         <span asp-validation-for="Input.FullName" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="Input.Email" class="form-label"></label>
                         <input asp-for="Input.Email" class="form-control" autocomplete="username"
-                               aria-required="true" placeholder="you@example.com" />
+                               aria-required="true" placeholder="e.g. aisyah@student.apu.edu.my" />
                         <span asp-validation-for="Input.Email" class="text-danger"></span>
                     </div>
 
@@ -40,6 +41,14 @@
                         <label asp-for="Input.Password" class="form-label"></label>
                         <input asp-for="Input.Password" class="form-control" autocomplete="new-password"
                                aria-required="true" placeholder="Password" />
+                        @* These are the rules Program.cs enforces. Saying them
+                           UP FRONT is the fix for "registration is broken" —
+                           people typed a simple password, were refused, and had
+                           no way of knowing what would be accepted. *@
+                        <div class="form-text">
+                            At least 8 characters, with an uppercase letter, a lowercase letter,
+                            a number and a symbol.
+                        </div>
                         <span asp-validation-for="Input.Password" class="text-danger"></span>
                     </div>
 

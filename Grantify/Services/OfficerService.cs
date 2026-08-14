@@ -231,7 +231,9 @@ public class OfficerService
         // because of our own delay.
         if (profile is not null && application.Scholarship is not null)
         {
-            detail.Eligibility = _eligibility.Check(
+            // CheckAsync = the screening microservice when configured, with a
+            // local fallback — the same path the student's browse page uses.
+            detail.Eligibility = await _eligibility.CheckAsync(
                 profile, application.Scholarship, application.SubmittedOn.ToLocalTime());
         }
 

@@ -20,8 +20,9 @@
         <div class="card">
             <div class="card-body p-4">
                 <form id="account" method="post">
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"
-                         style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+                    @* Empty summaries are hidden by the shared validation css
+                       in site.css, so no inline style tricks are needed. *@
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                     <div class="mb-3">
                         <label asp-for="Input.Email" class="form-label"></label>

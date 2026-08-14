@@ -20,19 +20,19 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label asp-for="Input.Name" class="form-label"></label>
-                        <input asp-for="Input.Name" class="form-control" />
+                        <input asp-for="Input.Name" class="form-control" placeholder="e.g. APU Merit Scholarship" />
                         <span asp-validation-for="Input.Name" class="text-danger"></span>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label asp-for="Input.Provider" class="form-label"></label>
-                        <input asp-for="Input.Provider" class="form-control" />
+                        <input asp-for="Input.Provider" class="form-control" placeholder="e.g. Asia Pacific University" />
                         <span asp-validation-for="Input.Provider" class="text-danger"></span>
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="Input.Description" class="form-label"></label>
-                    <textarea asp-for="Input.Description" class="form-control" rows="3"></textarea>
+                    <textarea asp-for="Input.Description" class="form-control" rows="3" placeholder="e.g. For students with strong academic results. Covers full tuition for one academic year."></textarea>
                     <span asp-validation-for="Input.Description" class="text-danger"></span>
                 </div>
 
@@ -57,13 +57,13 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label asp-for="Input.MinimumCgpa" class="form-label"></label>
-                        <input asp-for="Input.MinimumCgpa" class="form-control" type="number" step="0.01" min="0" max="4" />
+                        <input asp-for="Input.MinimumCgpa" class="form-control" type="number" inputmode="decimal" step="0.01" min="0" max="4" placeholder="e.g. 3.00" />
                         <div class="form-text">On a 4.00 scale.</div>
                         <span asp-validation-for="Input.MinimumCgpa" class="text-danger"></span>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label asp-for="Input.MaximumHouseholdIncome" class="form-label"></label>
-                        <input asp-for="Input.MaximumHouseholdIncome" class="form-control" type="number" step="0.01" min="0" />
+                        <input asp-for="Input.MaximumHouseholdIncome" class="form-control" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g. 5000" />
                         <div class="form-text">Leave blank for no income limit.</div>
                         <span asp-validation-for="Input.MaximumHouseholdIncome" class="text-danger"></span>
                     </div>

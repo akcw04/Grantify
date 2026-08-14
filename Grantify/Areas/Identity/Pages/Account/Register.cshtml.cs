@@ -58,8 +58,10 @@ public class RegisterModel : PageModel
         [Display(Name = "Email")]
         public string Email { get; set; } = string.Empty;
 
+        // Length matches the policy in Program.cs, so the browser refuses a
+        // too-short password before the server has to.
         [Required(ErrorMessage = "Please choose a password.")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "The password must be at least 6 characters long.")]
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "The password must be at least 8 characters long.")]
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
         public string Password { get; set; } = string.Empty;

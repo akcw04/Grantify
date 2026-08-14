@@ -19,7 +19,21 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 // ---------- 2. Login system (ASP.NET Core Identity) ----------
 // RequireConfirmedAccount is off because we do not send real confirmation
 // emails during development.
-builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
+builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
+    {
+        options.SignIn.RequireConfirmedAccount = false;
+
+        // The password rules, written out instead of inherited. Identity's
+        // defaults were on anyway, but nothing on the register page said so —
+        // people typed a simple password, were refused, and read it as
+        // "registration is broken". The register page now lists these same
+        // rules under the password box, so keep the two in step.
+        options.Password.RequiredLength = 8;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireDigit = true;
+        options.Password.RequireNonAlphanumeric = true;
+    })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
 
@@ -65,6 +79,44 @@ builder.Services.AddScoped<DocumentStorageService>();
 // property Notifications__TopicArn is set. Without it, nothing is sent and a
 // line goes in the log — so local development needs no AWS setup.
 builder.Services.AddScoped<DecisionNotifier>();
+
+// ---------- 4b. Caching (Amazon ElastiCache for Redis in the cloud) ----------
+// The public landing page is the one page every anonymous visitor hits, and it
+// runs three database queries per view. Its results are cached for a minute:
+//
+//   Cache__RedisEndpoint set  -> Amazon ElastiCache (Redis), shared by every
+//                                web server, survives an app restart
+//   not set                   -> the same cache kept in this process's memory
+//
+// Same pattern as S3 and SNS: one environment property switches the cloud
+// service on, and F5 on a laptop needs nothing. abortConnect=false means the
+// app still starts when Redis is briefly unreachable, and the cache reads
+// themselves are wrapped in try/catch so a Redis outage slows nothing down —
+// the page just falls back to the database.
+var redisEndpoint = builder.Configuration["Cache:RedisEndpoint"];
+if (!string.IsNullOrWhiteSpace(redisEndpoint))
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = $"{redisEndpoint.Trim()},abortConnect=false,connectTimeout=3000";
+        options.InstanceName = "grantify:";
+    });
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache();
+}
+
+// ---------- 4c. Eligibility microservice (AWS Lambda + API Gateway) ----------
+// When Eligibility__ApiUrl is set, eligibility checks are POSTed to the
+// screening microservice (a Lambda behind API Gateway) instead of running
+// in-process. The 3-second timeout matters: if the remote service is slow or
+// down, EligibilityService falls back to its local copy of the rules, so a
+// student can always browse. See EligibilityService.CheckAsync.
+builder.Services.AddHttpClient("eligibility", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(3);
+});
 builder.Services.AddScoped<OfficerService>();   // Member B — Officer role
 builder.Services.AddScoped<StudentService>();   // Member A — Student role
 
@@ -90,15 +142,10 @@ using (var scope = app.Services.CreateScope())
 {
     try
     {
+        // DbSeeder also decides whether the demonstration data is seeded:
+        // always on our own machines, and on the deployed site only when the
+        // Seed__DemoData environment property says so. See DemoDataSeeder.
         await DbSeeder.SeedAsync(scope.ServiceProvider, app.Environment.IsDevelopment());
-
-        // TEMPORARY (Member B): fake applications so the Officer review queue is not
-        // empty while the Student pages are still being built. Development only.
-        // Delete this block, and OfficerDemoSeeder.cs, once Member A's pages work.
-        if (app.Environment.IsDevelopment())
-        {
-            await OfficerDemoSeeder.SeedAsync(scope.ServiceProvider);
-        }
     }
     catch (Exception ex)
     {

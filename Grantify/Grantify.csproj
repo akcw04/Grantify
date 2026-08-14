@@ -31,6 +31,10 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.0.102.1" />
     <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.100.8" />
+    <!-- Redis client for Amazon ElastiCache. The app only uses the standard
+         IDistributedCache interface, so locally (no Redis endpoint configured)
+         the same code runs against an in-memory cache instead. -->
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.10" />

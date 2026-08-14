@@ -18,8 +18,9 @@ public class IndexModel : PageModel
         _scholarshipService = scholarshipService;
     }
 
-    // The list the .cshtml file displays.
-    public List<Scholarship> Scholarships { get; set; } = new();
+    // The list the .cshtml file displays — the small public shape, which is
+    // also what the landing page cache stores (see ScholarshipService).
+    public List<LandingScholarship> Scholarships { get; set; } = new();
 
     // The headline figures across the top of the page.
     public PublicStats Stats { get; set; } = new();

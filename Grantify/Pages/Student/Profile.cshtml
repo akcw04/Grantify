@@ -37,7 +37,7 @@
 
                         <div class="mb-3">
                             <label asp-for="Input.FullName" class="form-label"></label>
-                            <input asp-for="Input.FullName" class="form-control" />
+                            <input asp-for="Input.FullName" class="form-control" placeholder="e.g. Aisyah Binti Rahman" />
                             <span asp-validation-for="Input.FullName" class="text-danger"></span>
                         </div>
                     </div>
@@ -60,7 +60,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Input.Cgpa" class="form-label"></label>
-                                <input asp-for="Input.Cgpa" class="form-control" type="number" step="0.01" min="0" max="4" />
+                                <input asp-for="Input.Cgpa" class="form-control" type="number" inputmode="decimal" step="0.01" min="0" max="4" placeholder="e.g. 3.50" />
                                 <div class="form-text">On a 4.00 scale.</div>
                                 <span asp-validation-for="Input.Cgpa" class="text-danger"></span>
                             </div>
@@ -75,7 +75,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label asp-for="Input.HouseholdIncome" class="form-label"></label>
-                                <input asp-for="Input.HouseholdIncome" class="form-control" type="number" step="0.01" min="0" />
+                                <input asp-for="Input.HouseholdIncome" class="form-control" type="number" inputmode="decimal" step="0.01" min="0" placeholder="e.g. 3500" />
                                 <div class="form-text">Used by need-based scholarships.</div>
                                 <span asp-validation-for="Input.HouseholdIncome" class="text-danger"></span>
                             </div>

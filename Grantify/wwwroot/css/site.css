@@ -157,6 +157,24 @@ body {
     text-align: start;
 }
 
+/* ---------- Validation messages ----------
+   ASP.NET always renders the message element and just changes its class:
+   "...-valid" while there is nothing to say, "...-error(s)" once there is.
+   Left alone, the empty elements still take part in layout, so every form
+   carried blank gaps under each field and a blank strip above — worst with an
+   empty alert box, which kept its border and padding. Collapse them until
+   they actually have something to show. */
+span.field-validation-valid,
+.validation-summary-valid {
+    display: none;
+}
+
+span.field-validation-error {
+    display: block;
+    font-size: var(--g-text-sm);
+    margin-top: .25rem;
+}
+
 /* ==================================================================
    3. Page header — the same title block on every page in every role
    ================================================================== */

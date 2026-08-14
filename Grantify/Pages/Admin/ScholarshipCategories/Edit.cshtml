@@ -23,13 +23,13 @@
 
                         <div class="mb-3">
                             <label asp-for="Input.Name" class="form-label"></label>
-                            <input asp-for="Input.Name" class="form-control" />
+                            <input asp-for="Input.Name" class="form-control" placeholder="e.g. STEM" />
                             <span asp-validation-for="Input.Name" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="Input.Description" class="form-label"></label>
-                            <textarea asp-for="Input.Description" class="form-control" rows="3"></textarea>
+                            <textarea asp-for="Input.Description" class="form-control" rows="3" placeholder="e.g. Science, technology, engineering and mathematics programmes."></textarea>
                             <span asp-validation-for="Input.Description" class="text-danger"></span>
                         </div>
 

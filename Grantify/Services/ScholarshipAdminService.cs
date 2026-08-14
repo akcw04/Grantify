@@ -4,13 +4,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Grantify.Services;
 
+// OWNER: Member C (Admin role). Scholarship CRUD for the admin pages.
 public class ScholarshipAdminService
 {
     private readonly AppDbContext _db;
+    private readonly ScholarshipService _publicCatalogue;
 
-    public ScholarshipAdminService(AppDbContext db)
+    public ScholarshipAdminService(AppDbContext db, ScholarshipService publicCatalogue)
     {
         _db = db;
+        // The public landing page caches its scholarship list (see
+        // ScholarshipService). Creating or editing a listing here must clear
+        // that cache, or the public page keeps showing the old data for up to
+        // a minute after the admin pressed Save.
+        _publicCatalogue = publicCatalogue;
     }
 
     public async Task<List<Scholarship>> GetAllAsync()
@@ -36,6 +43,8 @@ public class ScholarshipAdminService
     {
         _db.Scholarships.Add(scholarship);
         await _db.SaveChangesAsync();
+
+        await _publicCatalogue.InvalidateLandingCacheAsync();
         return scholarship;
     }
 
@@ -59,6 +68,8 @@ public class ScholarshipAdminService
         existing.IntakePeriodId = updated.IntakePeriodId;
 
         await _db.SaveChangesAsync();
+
+        await _publicCatalogue.InvalidateLandingCacheAsync();
         return true;
     }
 
