@@ -25,8 +25,11 @@ public class EditModel : AdminPageModel
         [StringLength(200)]
         public string Name { get; set; } = string.Empty;
 
+        // string? on purpose. With <Nullable>enable</Nullable> a non-nullable
+        // string is treated as [Required] automatically, which silently made
+        // this optional field mandatory. Nullable keeps it genuinely optional.
         [StringLength(2000)]
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
     }
 
     public async Task<IActionResult> OnGetAsync(int id)
@@ -54,7 +57,7 @@ public class EditModel : AdminPageModel
             return Page();
         }
 
-        var updated = await _categories.UpdateAsync(Id, Input.Name, Input.Description);
+        var updated = await _categories.UpdateAsync(Id, Input.Name, Input.Description ?? string.Empty);
         if (!updated)
         {
             return NotFound();

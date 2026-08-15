@@ -23,8 +23,11 @@ public class CreateModel : AdminPageModel
         [StringLength(200)]
         public string Name { get; set; } = string.Empty;
 
+        // string? on purpose. With <Nullable>enable</Nullable> a non-nullable
+        // string is treated as [Required] automatically, which silently made
+        // this optional field mandatory. Nullable keeps it genuinely optional.
         [StringLength(2000)]
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -37,7 +40,7 @@ public class CreateModel : AdminPageModel
         await _categories.CreateAsync(new ScholarshipCategory
         {
             Name = Input.Name,
-            Description = Input.Description
+            Description = Input.Description ?? string.Empty
         });
 
         SetMessage($"Category \"{Input.Name}\" was created.");
