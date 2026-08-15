@@ -25,13 +25,16 @@ public class EditModel : AdminPageModel
         [StringLength(200)]
         public string Name { get; set; } = string.Empty;
 
+        // string? on purpose. With <Nullable>enable</Nullable> a non-nullable
+        // string is treated as [Required] automatically, which silently made
+        // this optional field mandatory. Nullable keeps it genuinely optional.
         [StringLength(200)]
-        public string Location { get; set; } = string.Empty;
+        public string? Location { get; set; }
 
         [StringLength(256)]
         [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
         [Display(Name = "Contact email")]
-        public string ContactEmail { get; set; } = string.Empty;
+        public string? ContactEmail { get; set; }
     }
 
     public async Task<IActionResult> OnGetAsync(int id)
@@ -60,7 +63,8 @@ public class EditModel : AdminPageModel
             return Page();
         }
 
-        var updated = await _institutions.UpdateAsync(Id, Input.Name, Input.Location, Input.ContactEmail);
+        var updated = await _institutions.UpdateAsync(
+            Id, Input.Name, Input.Location ?? string.Empty, Input.ContactEmail ?? string.Empty);
         if (!updated)
         {
             return NotFound();

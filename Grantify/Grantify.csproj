@@ -26,6 +26,20 @@
          Keep the line endings as LF; a Windows CRLF turns the command into
          "./Grantify\r", which fails with a confusing error. -->
     <Content Include="Procfile" CopyToPublishDirectory="Always" CopyToOutputDirectory="Never" />
+
+    <!-- nginx override for Elastic Beanstalk. Beanstalk merges any .conf file
+         under .platform/nginx/conf.d/ into the proxy configuration on deploy,
+         and the .platform folder must sit at the ROOT of the bundle - which is
+         what this line guarantees.
+
+         It raises client_max_body_size from the nginx default of 1 MB. Without
+         it, a 2 MB transcript was refused by the proxy with a raw 413 page
+         before our code ever ran, even though the upload form promises 5 MB.
+
+         Listed explicitly rather than with a wildcard: MSBuild globs skip
+         dot-folders, so ".platform/**/*" silently matches nothing. -->
+    <Content Include=".platform\nginx\conf.d\proxy.conf"
+             CopyToPublishDirectory="Always" CopyToOutputDirectory="Never" />
   </ItemGroup>
 
   <ItemGroup>

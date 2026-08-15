@@ -34,13 +34,21 @@ public class ProfileModel : StudentPageModel
         [Display(Name = "Full name")]
         public string FullName { get; set; } = string.Empty;
 
+        // NULLABLE on purpose. A plain decimal defaults to 0, and Razor then
+        // renders value="0" in the box — so the placeholder never appears and
+        // the student has to select the 0 and delete it before they can type.
+        // Nullable renders an EMPTY box on a profile that has not been filled
+        // in yet, which is what a person expects. [Required] still means the
+        // field cannot be submitted blank.
+        [Required(ErrorMessage = "Please enter your current CGPA.")]
         [Range(0, 4.00, ErrorMessage = "CGPA must be between 0.00 and 4.00.")]
         [Display(Name = "Current CGPA")]
-        public decimal Cgpa { get; set; }
+        public decimal? Cgpa { get; set; }
 
+        [Required(ErrorMessage = "Please enter your monthly household income.")]
         [Range(0, 1000000, ErrorMessage = "Household income cannot be negative.")]
         [Display(Name = "Monthly household income (RM)")]
-        public decimal HouseholdIncome { get; set; }
+        public decimal? HouseholdIncome { get; set; }
 
         [Required(ErrorMessage = "Please enter your course.")]
         [StringLength(200)]
@@ -58,16 +66,20 @@ public class ProfileModel : StudentPageModel
         var profile = await _students.GetOrCreateProfileAsync(CurrentUserId);
         var user = await _userManager.GetUserAsync(User);
 
+        IsComplete = StudentService.IsProfileComplete(profile);
+
+        // A profile row is created the first time this page is opened, with
+        // every number at zero. Showing those zeros would be a lie — the
+        // student never entered them — so a profile that has not been filled in
+        // yet gets empty boxes and the "e.g. 3.50" hint instead.
         Input = new InputModel
         {
             FullName = user?.FullName ?? string.Empty,
-            Cgpa = profile.Cgpa,
-            HouseholdIncome = profile.HouseholdIncome,
+            Cgpa = IsComplete ? profile.Cgpa : null,
+            HouseholdIncome = IsComplete ? profile.HouseholdIncome : null,
             Course = profile.Course,
             Institution = profile.Institution
         };
-
-        IsComplete = StudentService.IsProfileComplete(profile);
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -86,8 +98,10 @@ public class ProfileModel : StudentPageModel
             await _userManager.UpdateAsync(user);
         }
 
+        // Both are [Required], so ModelState.IsValid above guarantees a value.
         await _students.SaveProfileAsync(
-            CurrentUserId, Input.Cgpa, Input.HouseholdIncome, Input.Course, Input.Institution);
+            CurrentUserId, Input.Cgpa!.Value, Input.HouseholdIncome!.Value,
+            Input.Course, Input.Institution);
 
         SetMessage("Profile saved. Your eligibility results have been updated.");
         return RedirectToPage();

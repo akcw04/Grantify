@@ -35,12 +35,19 @@ public class EditModel : AdminPageModel
         [StringLength(200)]
         public string Provider { get; set; } = string.Empty;
 
+        // string? on purpose. With <Nullable>enable</Nullable> a non-nullable
+        // string is treated as [Required] automatically, which silently made
+        // this optional field mandatory. Nullable keeps it genuinely optional.
         [StringLength(2000)]
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
 
+        // NULLABLE on purpose - see Pages/Student/Profile.cshtml.cs. A plain
+        // decimal renders value="0", hiding the placeholder and forcing the
+        // admin to delete the 0 before typing. [Required] still enforces entry.
+        [Required(ErrorMessage = "Please enter the minimum CGPA.")]
         [Range(0, 4.00, ErrorMessage = "CGPA must be between 0.00 and 4.00.")]
         [Display(Name = "Minimum CGPA")]
-        public decimal MinimumCgpa { get; set; }
+        public decimal? MinimumCgpa { get; set; }
 
         [Range(0, 1000000, ErrorMessage = "Household income cannot be negative.")]
         [Display(Name = "Maximum household income (RM)")]
@@ -103,8 +110,8 @@ public class EditModel : AdminPageModel
             Id = Id,
             Name = Input.Name,
             Provider = Input.Provider,
-            Description = Input.Description,
-            MinimumCgpa = Input.MinimumCgpa,
+            Description = Input.Description ?? string.Empty,
+            MinimumCgpa = Input.MinimumCgpa!.Value,
             MaximumHouseholdIncome = Input.MaximumHouseholdIncome,
             Deadline = Input.Deadline,
             IsPublished = Input.IsPublished,
