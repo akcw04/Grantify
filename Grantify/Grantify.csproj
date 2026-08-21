@@ -38,13 +38,13 @@
 
          Listed explicitly rather than with a wildcard: MSBuild globs skip
          dot-folders, so ".platform/**/*" silently matches nothing. -->
-    <Content Include=".platform\nginx\conf.d\proxy.conf"
-             CopyToPublishDirectory="Always" CopyToOutputDirectory="Never" />
+    <Content Include=".platform\nginx\conf.d\proxy.conf" CopyToPublishDirectory="Always" CopyToOutputDirectory="Never" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.0.102.1" />
     <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.100.8" />
+    <PackageReference Include="AWSSDK.SQS" Version="4.0.100.10" />
     <!-- Redis client for Amazon ElastiCache. The app only uses the standard
          IDistributedCache interface, so locally (no Redis endpoint configured)
          the same code runs against an in-memory cache instead. -->

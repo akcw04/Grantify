@@ -75,6 +75,12 @@ builder.Services.AddScoped<EligibilityService>();
 // this machine (our laptops). Used by both the Student and Officer modules.
 builder.Services.AddScoped<DocumentStorageService>();
 
+// Puts an uploaded document on the Amazon SQS queue that feeds the processing
+// microservice, when the environment property Documents__ProcessingQueueUrl is
+// set. Without it nothing is queued and the document stays Pending for an
+// officer to check by hand — exactly the Task 1 behaviour.
+builder.Services.AddScoped<DocumentQueuePublisher>();
+
 // Sends the award / rejection email through Amazon SNS when the environment
 // property Notifications__TopicArn is set. Without it, nothing is sent and a
 // line goes in the log — so local development needs no AWS setup.

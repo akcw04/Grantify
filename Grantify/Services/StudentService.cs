@@ -17,12 +17,15 @@ public class StudentService
     private readonly AppDbContext _db;
     private readonly EligibilityService _eligibility;
     private readonly DocumentStorageService _storage;
+    private readonly DocumentQueuePublisher _queue;
 
-    public StudentService(AppDbContext db, EligibilityService eligibility, DocumentStorageService storage)
+    public StudentService(AppDbContext db, EligibilityService eligibility,
+                          DocumentStorageService storage, DocumentQueuePublisher queue)
     {
         _db = db;
         _eligibility = eligibility;
         _storage = storage;
+        _queue = queue;
     }
 
     // ---------- #1 Profile ----------
@@ -214,16 +217,26 @@ public class StudentService
             storagePath = await _storage.SaveAsync(applicationId, storedName, upload);
         }
 
-        _db.ApplicationDocuments.Add(new ApplicationDocument
+        var document = new ApplicationDocument
         {
             ScholarshipApplicationId = applicationId,
             FileName = Path.GetFileName(file.FileName),
             StoragePath = storagePath,
             Status = DocumentStatus.Pending,
             UploadedOn = DateTime.UtcNow   // UTC everywhere — see SubmittedOn above
-        });
+        };
 
+        _db.ApplicationDocuments.Add(document);
         await _db.SaveChangesAsync();
+
+        // TASK 2: hand the document to the processing microservice.
+        // This comes AFTER the save on purpose — document.Id is 0 until the row
+        // is written, and the microservice needs that Id to report its result
+        // back against the right document. Queueing is also deliberately the
+        // last thing that happens: the upload is already complete and safe by
+        // this point, so a queue problem can never cost the student their file.
+        await _queue.QueueAsync(document.Id, storagePath);
+
         return new ApplyResult(true, "Document uploaded.");
     }
 
