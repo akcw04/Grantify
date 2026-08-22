@@ -14,11 +14,15 @@ namespace Grantify.Pages.Officer;
 public class DocumentsModel : OfficerPageModel
 {
     private readonly OfficerService _officerService;
+    private readonly DocumentExtractionReader _extractions;
 
-    public DocumentsModel(OfficerService officerService, UserManager<ApplicationUser> userManager)
+    public DocumentsModel(OfficerService officerService,
+                          DocumentExtractionReader extractions,
+                          UserManager<ApplicationUser> userManager)
         : base(userManager)
     {
         _officerService = officerService;
+        _extractions = extractions;
     }
 
     // Empty = show everything not yet settled (pending + flagged).
@@ -27,9 +31,17 @@ public class DocumentsModel : OfficerPageModel
 
     public List<DocumentQueueItem> Items { get; private set; } = new();
 
+    // What the microservice read out of each file, keyed by document id.
+    // A document with no entry simply shows no suggestion.
+    public Dictionary<int, DocumentExtraction> Extractions { get; private set; } = new();
+
     public async Task OnGetAsync()
     {
+        // The queue itself comes from our SQL database; the machine readings
+        // come from DynamoDB. The two are joined here, at read time, which is
+        // why the extraction pipeline never has to touch RDS.
         Items = await _officerService.GetDocumentQueueAsync(Status);
+        Extractions = await _extractions.GetManyAsync(Items.Select(i => i.DocumentId));
     }
 
     // Opens the uploaded file from the verification queue, so an officer working

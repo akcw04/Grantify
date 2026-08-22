@@ -81,6 +81,12 @@ builder.Services.AddScoped<DocumentStorageService>();
 // officer to check by hand — exactly the Task 1 behaviour.
 builder.Services.AddScoped<DocumentQueuePublisher>();
 
+// Reads back what that microservice found, from Amazon DynamoDB, when the
+// environment property Documents__ExtractionTable is set. Without it the
+// officer's verification page simply shows no suggestion and they read the
+// file themselves — the Task 1 behaviour.
+builder.Services.AddScoped<DocumentExtractionReader>();
+
 // Sends the award / rejection email through Amazon SNS when the environment
 // property Notifications__TopicArn is set. Without it, nothing is sent and a
 // line goes in the log — so local development needs no AWS setup.
@@ -135,6 +141,37 @@ builder.Services.AddScoped<ScholarshipAdminService>();
 builder.Services.AddScoped<AnalyticsService>();
 
 var app = builder.Build();
+
+// ---------- 4d. Architecture banner ----------
+// Every cloud service in this system is switched on by an environment property,
+// which means the SAME build runs either as a plain monolith or as the
+// serverless architecture. That is what lets us measure both — but it also
+// means a screenshot of a graph proves nothing unless you know which mode
+// produced it.
+//
+// So the mode of every gated service is written to the log once at startup, and
+// served as JSON at /health/architecture. One line in the log, one page in the
+// browser, and there is never any doubt about which architecture was running.
+static string Mode(IConfiguration c, string key, string on, string off) =>
+    string.IsNullOrWhiteSpace(c[key]) ? off : on;
+
+var architecture = new Dictionary<string, string>
+{
+    ["storage"]       = Mode(app.Configuration, "Storage:BucketName",             "s3",       "local-disk"),
+    ["cache"]         = Mode(app.Configuration, "Cache:RedisEndpoint",            "redis",    "in-memory"),
+    ["eligibility"]   = Mode(app.Configuration, "Eligibility:ApiUrl",             "lambda",   "in-process"),
+    ["notifications"] = Mode(app.Configuration, "Notifications:TopicArn",         "sns",      "log-only"),
+    ["documents"]     = Mode(app.Configuration, "Documents:ProcessingQueueUrl",   "sqs",      "manual"),
+    ["extractions"]   = Mode(app.Configuration, "Documents:ExtractionTable",      "dynamodb", "none")
+};
+
+app.Logger.LogInformation(
+    "Grantify architecture: storage={Storage}, cache={Cache}, eligibility={Eligibility}, " +
+    "notifications={Notifications}, documents={Documents}, extractions={Extractions}",
+    architecture["storage"], architecture["cache"], architecture["eligibility"],
+    architecture["notifications"], architecture["documents"], architecture["extractions"]);
+
+app.MapGet("/health/architecture", () => Results.Json(architecture)).AllowAnonymous();
 
 // ---------- 5. Prepare the database on startup ----------
 // Applies any new migrations, then fills in the starting data.

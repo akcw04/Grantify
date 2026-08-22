@@ -65,3 +65,30 @@
 .officer-page .history-detail {
     font-size: var(--g-text-md);
 }
+
+/* TASK 2 — the machine reading panel on the document verification page.
+   Collapsed by default so a long queue stays scannable, and the text box
+   scrolls rather than pushing every other row down the page. */
+
+.officer-page .doc-reading {
+    margin-top: .5rem;
+}
+
+.officer-page .doc-reading > summary {
+    font-size: var(--g-text-sm);
+    color: var(--g-muted);
+    cursor: pointer;
+}
+
+.officer-page .doc-reading-text {
+    max-height: 11rem;
+    overflow-y: auto;
+    margin: .5rem 0;
+    padding: .6rem;
+    border: 1px solid var(--g-line);
+    border-radius: var(--g-radius-sm, .375rem);
+    background: var(--g-surface-2, transparent);
+    font-size: var(--g-text-sm);
+    white-space: pre-wrap;
+    word-break: break-word;
+}

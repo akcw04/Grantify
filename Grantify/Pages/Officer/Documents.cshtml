@@ -64,6 +64,39 @@
                                 <div class="cell-sub">
                                     uploaded @item.UploadedOn.ToLocalTime().ToString("dd MMM yyyy")
                                 </div>
+
+                                @* TASK 2: what the processing microservice read out of this
+                                   file. Collapsed by default so the queue stays scannable,
+                                   and only a SUGGESTION — the officer still decides. *@
+                                @if (Model.Extractions.TryGetValue(item.DocumentId, out var reading))
+                                {
+                                    @* Built up here rather than inline: a ToString("0.0") sitting
+                                       inside a double-quoted HTML attribute is ambiguous to parse. *@
+                                    var confidenceText = reading.Confidence.ToString("0.0");
+                                    var noteSuggestion =
+                                        $"Auto-read: {reading.LineCount} lines at {confidenceText}% confidence.";
+
+                                    <details class="doc-reading">
+                                        <summary>
+                                            Machine reading — @reading.LineCount lines,
+                                            @confidenceText% confidence
+                                        </summary>
+
+                                        @if (string.IsNullOrWhiteSpace(reading.Text))
+                                        {
+                                            <p class="cell-sub mb-2">No readable text was found in this file.</p>
+                                        }
+                                        else
+                                        {
+                                            <pre class="doc-reading-text">@reading.Text</pre>
+                                        }
+
+                                        <button type="button" class="btn btn-sm btn-outline-secondary use-reading"
+                                                data-note="@noteSuggestion">
+                                            Use this in the note
+                                        </button>
+                                    </details>
+                                }
                             </td>
                             <td>@item.StudentName</td>
                             <td>@item.ScholarshipName</td>

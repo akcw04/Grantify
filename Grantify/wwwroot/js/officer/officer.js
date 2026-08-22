@@ -51,4 +51,24 @@
         }, function () { app.resubmitForm(form, submitter); });
     });
 
+    // TASK 2: "Use this in the note" on the document verification page.
+    // Copies the machine reading's summary into that row's note box. It only
+    // FILLS the box — the officer still reads it, can edit it, and still has to
+    // press Verify or Flag themselves. Nothing here decides anything.
+    document.addEventListener("click", function (event) {
+        if (!event.target || !event.target.closest) { return; }
+
+        var button = event.target.closest(".use-reading");
+        if (!button) { return; }
+
+        var row = button.closest("tr");
+        if (!row) { return; }
+
+        var note = row.querySelector('input[name="note"]');
+        if (!note) { return; }
+
+        note.value = button.getAttribute("data-note") || "";
+        note.focus();
+    });
+
 })(window.Grantify);
